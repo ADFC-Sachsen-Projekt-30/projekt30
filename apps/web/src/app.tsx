@@ -1,43 +1,53 @@
-import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
-import viteLogo from '/vite.svg'
-import './app.css'
+import {
+  AppShell,
+  Burger,
+  createTheme,
+  Group,
+  MantineProvider,
+  Text,
+} from "@mantine/core";
+import "@mantine/core/styles.css";
+import { useDisclosure } from "@mantine/hooks";
+import "./app.css";
 
-export function App() {
-  const [count, setCount] = useState(0)
+const theme = createTheme({
+  /** Put your mantine theme override here */
+});
+
+export function AppMain() {
+  const [opened, { toggle }] = useDisclosure();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://preactjs.com" target="_blank">
-          <img src={preactLogo} class="logo preact" alt="Preact logo" />
-        </a>
-      </div>
-      <h1>Vite + Preact</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/app.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p>
-        Check out{' '}
-        <a
-          href="https://preactjs.com/guide/v10/getting-started#create-a-vite-powered-preact-app"
-          target="_blank"
-        >
-          create-preact
-        </a>
-        , the official Preact + Vite starter
-      </p>
-      <p class="read-the-docs">
-        Click on the Vite and Preact logos to learn more
-      </p>
-    </>
-  )
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md">
+          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+          Header has a burger icon below sm breakpoint
+        </Group>
+      </AppShell.Header>
+      <AppShell.Navbar p="md">
+        Navbar is collapsed on mobile at sm breakpoint. At that point it is no
+        longer offset by padding in the main element and it takes the full width
+        of the screen when opened.
+      </AppShell.Navbar>
+      <AppShell.Main>
+        <Text>This is the main section, your app content here.</Text>
+        <Text>
+          Layout used in most cases – Navbar and Header with fixed position
+        </Text>
+      </AppShell.Main>
+    </AppShell>
+  );
+}
+
+export function App() {
+  return (
+    <MantineProvider theme={theme}>
+      <AppMain />
+    </MantineProvider>
+  );
 }
