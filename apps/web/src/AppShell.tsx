@@ -1,11 +1,7 @@
-import {
-  Burger,
-  Group,
-  AppShell as MantineAppShell,
-  Text,
-} from "@mantine/core";
+import { Burger, Group, AppShell as MantineAppShell } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { useDisclosure } from "@mantine/hooks";
+import { Map } from "./Map";
 
 export function AppShell() {
   const [opened, { toggle }] = useDisclosure();
@@ -14,24 +10,22 @@ export function AppShell() {
     <MantineAppShell
       header={{ height: 60 }}
       navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
-      padding="md"
+      padding={0}
+      zIndex={
+        // let app shell (esp the navbar) hover above the leaflet map (base
+        // zIndex 400, controls have 1000)
+        2000
+      }
     >
       <MantineAppShell.Header>
         <Group h="100%" px="md">
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          Header has a burger icon below sm breakpoint
+          Project 30
         </Group>
       </MantineAppShell.Header>
-      <MantineAppShell.Navbar p="md">
-        Navbar is collapsed on mobile at sm breakpoint. At that point it is no
-        longer offset by padding in the main element and it takes the full width
-        of the screen when opened.
-      </MantineAppShell.Navbar>
+      <MantineAppShell.Navbar p="md">Navbar</MantineAppShell.Navbar>
       <MantineAppShell.Main>
-        <Text>This is the main section, your app content here.</Text>
-        <Text>
-          Layout used in most cases – Navbar and Header with fixed position
-        </Text>
+        <Map />
       </MantineAppShell.Main>
     </MantineAppShell>
   );

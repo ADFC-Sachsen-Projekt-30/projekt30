@@ -1,7 +1,6 @@
 import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
-import "./App.css";
-import { AppShell } from "./AppShell.tsx";
+import { AppShell } from "./AppShell";
 
 const theme = createTheme({
   /** Put your mantine theme override here */
