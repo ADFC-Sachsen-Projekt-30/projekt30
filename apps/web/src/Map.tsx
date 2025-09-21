@@ -70,8 +70,18 @@ export function Map() {
       return;
     }
 
+    // does not need the default leaflet map icon to be present in the assets
+    const redCircleIcon = new L.DivIcon({
+      className: "red-circle-marker",
+      html: '<div style="width: 8px; height: 8px; background-color: red; border-radius: 50%; border: none; opacity: 0.6"></div>',
+      iconSize: [8, 8],
+      iconAnchor: [4, 4],
+    });
+
     const markers = queryResult.points.map((location) =>
-      new L.Marker([location.lat, location.lng]).addTo(map),
+      new L.Marker([location.lat, location.lng], { icon: redCircleIcon }).addTo(
+        map,
+      ),
     );
 
     return () => {
