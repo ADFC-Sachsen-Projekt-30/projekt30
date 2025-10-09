@@ -1,5 +1,5 @@
 import * as z from "zod";
-import type { LatLngBounds } from "./types";
+import type { LatLng, LatLngBounds } from "./types";
 
 const queryString = `
 // Geschwindigkeiten von Straßen im 20m-Umkreis um Schulen in der bbox
@@ -26,8 +26,19 @@ const queryString = `
 
  ((.schools; .streets;);>;);
 
-out body;
+out center;
 `;
+
+const queryStringSchools = `
+// Findet Schulen um die Koordinaten {{coord}} mit Abstand {{distance}}
+// und gibt das Zentrum des gefundenen Objekts zurück
+[out:json][timeout:800];
+
+nwr[amenity=school](around:{{distance}},{{coord}});
+out center;
+`;
+
+
 
 const overpassApiQueryResultRuntype = z.object({
   version: z.number(),
@@ -44,12 +55,24 @@ const overpassApiQueryResultRuntype = z.object({
       }),
       z.object({
         type: z.literal("way"),
+        center: z.object(
+          {
+            lat: z.number(),
+            lon: z.number()
+          }
+        ),
         id: z.number(),
         nodes: z.array(z.number()),
         tags: z.unknown(),
       }),
       z.object({
         type: z.literal("relation"),
+        center: z.object(
+          {
+            lat: z.number(),
+            lon: z.number()
+          }
+        ),
         id: z.number(),
         members: z.unknown(),
         tags: z.unknown(),
@@ -57,6 +80,23 @@ const overpassApiQueryResultRuntype = z.object({
     ]),
   ),
 });
+
+async function parseResponseToCoordinates( response: Response){
+
+    const result = await response.json();
+
+  const typedResult = overpassApiQueryResultRuntype.parse(result);
+
+  return typedResult.elements.flatMap((e) => {
+    if (e.type !== "node") {
+        return { lat: e.center.lat, lng: e.center.lon};
+    }
+
+    return { lat: e.lat, lng: e.lon};
+  });
+
+
+}
 
 export async function runQuery(bbox: LatLngBounds) {
   const bboxString = `${bbox.southWest.lat},${bbox.southWest.lng},${bbox.northEast.lat},${bbox.northEast.lng}`;
@@ -67,15 +107,23 @@ export async function runQuery(bbox: LatLngBounds) {
     body: "data=" + encodeURIComponent(query),
   });
 
-  const result = await response.json();
+  return parseResponseToCoordinates( response );
+}
 
-  const typedResult = overpassApiQueryResultRuntype.parse(result);
-
-  return typedResult.elements.flatMap((e) => {
-    if (e.type !== "node") {
-      return [];
-    }
-
-    return { lat: e.lat, lng: e.lon };
+export async function runSchoolQuery(point: LatLng, distance: number) {
+  /*
+   Runs a query where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point and placeholde {{distance}} is replaced by 
+   parameter distance
+  */
+  const pointString = `${point.lat},${point.lng}`;
+  const query = queryStringSchools.replaceAll("{{coord}}", pointString).replaceAll("{{distance}}", distance.toString());
+ 
+  const response = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    body: "data=" + encodeURIComponent(query),
   });
+
+  return parseResponseToCoordinates( response );
+
 }

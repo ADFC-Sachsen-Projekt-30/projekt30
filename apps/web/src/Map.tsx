@@ -5,7 +5,7 @@ import { useStore } from "./store";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setBbox, queryResult } = useStore();
+  const { setBbox, setQueryCoord, queryResult } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
 
   // Setup leaflet 2.0 (class based api) manually.
@@ -29,6 +29,7 @@ export function Map() {
 
     function handleBboxChange() {
       const leafletBbox = map.getBounds();
+      const leafletCenter = map.getCenter();
       const sw = leafletBbox.getSouthWest();
       const ne = leafletBbox.getNorthEast();
 
@@ -39,10 +40,19 @@ export function Map() {
         return;
       }
 
+
+      // Temporary hack to test coordiante queries before click event is established
+      // Use center of map
+      setQueryCoord( {
+        lat: leafletCenter.lat, 
+        lng: leafletCenter.lng
+      });
+
       setBbox({
         southWest: { lat: sw.lat, lng: sw.lng },
         northEast: { lat: ne.lat, lng: ne.lng },
       });
+      
     }
 
     map.on("moveend", handleBboxChange);
@@ -59,14 +69,16 @@ export function Map() {
       setMap(null);
       map.remove();
     };
-  }, [ref, setBbox]);
+  }, [ref, setBbox, setQueryCoord]);
 
   useEffect(() => {
     if (!map) {
       return;
     }
 
-    if (!queryResult?.points) {
+
+
+    if (!queryResult) {
       return;
     }
 
@@ -84,7 +96,23 @@ export function Map() {
       ),
     );
 
+    const greenCircleIcon = new L.DivIcon({
+      className: "green-circle-marker",
+      html: '<div style="width: 8px; height: 8px; background-color: green; border-radius: 50%; border: none; opacity: 0.6"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
+    });
+
+    const markersOfSchools = queryResult.pointsOfSchools.map((location) =>
+      new L.Marker([location.lat, location.lng], { icon: greenCircleIcon }).addTo(
+        map,
+      ),
+    );
+
+
+
     return () => {
+      markersOfSchools.forEach((m) => m.remove());
       markers.forEach((m) => m.remove());
     };
   }, [map, queryResult]);
