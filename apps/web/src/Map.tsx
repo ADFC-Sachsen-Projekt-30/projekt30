@@ -27,6 +27,14 @@ export function Map() {
       18,
     );
 
+   function handleClick( event : L.LeafletMouseEvent) {
+      const position = event.latlng;
+      setQueryCoord( {
+        lat: position.lat, 
+        lng: position.lng
+      });  
+    }
+
     function handleBboxChange() {
       const leafletBbox = map.getBounds();
       const leafletCenter = map.getCenter();
@@ -41,21 +49,25 @@ export function Map() {
       }
 
 
-      // Temporary hack to test coordiante queries before click event is established
-      // Use center of map
-      setQueryCoord( {
-        lat: leafletCenter.lat, 
-        lng: leafletCenter.lng
-      });
 
       setBbox({
         southWest: { lat: sw.lat, lng: sw.lng },
         northEast: { lat: ne.lat, lng: ne.lng },
       });
+
+      // Temporary hack to test coordiante queries before click event is established
+      // Use center of map.   If you remove this, then we need a subscribe on changes to the bbox-value
+      // to reevaluate the queries
+      setQueryCoord( {
+        lat: leafletCenter.lat, 
+        lng: leafletCenter.lng
+      });
       
+
     }
 
     map.on("moveend", handleBboxChange);
+    map.on("click", handleClick);
 
     new L.TileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,

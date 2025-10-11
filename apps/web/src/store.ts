@@ -39,6 +39,8 @@ export const useStore = create<Store>()(
     fetchQuery: async () => {
       const { bbox, queryCoord } = get();
 
+      // Debug alert(queryCoord?.lat.toString() + " " + queryCoord?.lng.toString());
+
       if (!bbox) {
         return;
       }
@@ -59,7 +61,7 @@ export const useStore = create<Store>()(
 );
 
 useStore.subscribe(
-  (state) => state.bbox,
+  (state) => state.queryCoord,
   () => {
     useStore.getState().fetchQuery();
   },
