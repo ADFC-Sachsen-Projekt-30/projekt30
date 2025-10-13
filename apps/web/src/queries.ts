@@ -51,7 +51,10 @@ const overpassApiQueryResultRuntype = z.object({
         id: z.number(),
         lat: z.number(),
         lon: z.number(),
-        tags: z.optional(z.unknown()),
+        tags: z.optional( z.object(
+            { 
+              name: z.optional( z.string() )  
+            }))
       }),
       z.object({
         type: z.literal("way"),
@@ -63,7 +66,10 @@ const overpassApiQueryResultRuntype = z.object({
         ),
         id: z.number(),
         nodes: z.array(z.number()),
-        tags: z.unknown(),
+        tags: z.optional( z.object(
+            { 
+              name: z.optional( z.string() )  
+            }))
       }),
       z.object({
         type: z.literal("relation"),
@@ -75,7 +81,10 @@ const overpassApiQueryResultRuntype = z.object({
         ),
         id: z.number(),
         members: z.unknown(),
-        tags: z.unknown(),
+        tags: z.optional( z.object(
+            { 
+              name: z.optional( z.string() )  
+            }))
       }),
     ]),
   ),
@@ -89,14 +98,57 @@ async function parseResponseToCoordinates( response: Response){
 
   return typedResult.elements.flatMap((e) => {
     if (e.type !== "node") {
-        return { lat: e.center.lat, lng: e.center.lon};
+        return { 
+          lat: e.center.lat, 
+          lng: e.center.lon, 
+          name: e.tags?.name 
+        };
     }
 
-    return { lat: e.lat, lng: e.lon};
+    return { 
+      lat: e.lat, 
+      lng: e.lon, 
+      name: e.tags?.name
+    };
   });
 
 
 }
+
+async function parseResponseToSchool( response: Response){
+
+    const result = await response.json();
+
+  const typedResult = overpassApiQueryResultRuntype.parse(result);
+
+  return typedResult.elements.flatMap((e) => {
+    let position : LatLng;
+    if (e.type !== "node") {
+      position = { 
+          lat: e.center.lat, 
+          lng: e.center.lon
+        };
+    } else {
+      position = {
+        lat: e.lat, 
+        lng: e.lon
+      }
+    }
+
+    let name = "Unbekannt";
+    if (e.tags && e.tags.name){
+      name = e.tags.name;
+    }
+
+    return { 
+          name: name,
+          position: position
+    };
+  });
+
+
+}
+
 
 export async function runQuery(bbox: LatLngBounds) {
   const bboxString = `${bbox.southWest.lat},${bbox.southWest.lng},${bbox.northEast.lat},${bbox.northEast.lng}`;
@@ -124,6 +176,6 @@ export async function runSchoolQuery(point: LatLng, distance: number) {
     body: "data=" + encodeURIComponent(query),
   });
 
-  return parseResponseToCoordinates( response );
+  return parseResponseToSchool( response );
 
 }

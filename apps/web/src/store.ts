@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { runQuery, runSchoolQuery } from "./queries";
 //import { runQuery } from "./queries";
-import type { LatLng, LatLngBounds, QueryResult } from "./types";
+import type { LatLng, LatLngBounds, QueryResult, School } from "./types";
 
 interface Store {
   // current map bounding box
@@ -45,7 +45,7 @@ export const useStore = create<Store>()(
         return;
       }
 
-      let resultSchools: LatLng[];
+      let resultSchools: School[];
       const result = await runQuery(bbox);
       
       resultSchools=[];

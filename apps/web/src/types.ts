@@ -3,6 +3,12 @@ export interface LatLng {
   lng: number;
 }
 
+export interface School {
+  name: string;
+  position: LatLng;
+}
+
+
 export interface LatLngBounds {
   southWest: LatLng;
   northEast: LatLng;
@@ -10,5 +16,5 @@ export interface LatLngBounds {
 
 export interface QueryResult {
   points: LatLng[];
-  pointsOfSchools: LatLng[];
+  pointsOfSchools: School[];
 }

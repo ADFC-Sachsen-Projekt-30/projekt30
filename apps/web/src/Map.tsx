@@ -2,13 +2,31 @@ import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "./store";
+import type { School } from "./types";
+
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
   const { setBbox, setQueryCoord, queryResult } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
 
-  // Setup leaflet 2.0 (class based api) manually.
+  
+  function ListResults() {
+            //{queryResult.pointsOfSchools.map( (point) => <li> point </li>)}
+    if (queryResult) {
+      return (
+        <>
+          <ul>
+           {queryResult.pointsOfSchools.map( (school: School) => <li> {school.name} in der Nähe von {school.position.lat}, {school.position.lng}</li>)}
+          </ul>
+        </>
+      );
+    }
+  }
+  
+
+
+   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
   // version (preact is missing react v19 `use` hook) and I didn't want to
   // switch back to react.
@@ -115,8 +133,8 @@ export function Map() {
       iconAnchor: [6, 6],
     });
 
-    const markersOfSchools = queryResult.pointsOfSchools.map((location) =>
-      new L.Marker([location.lat, location.lng], { icon: greenCircleIcon }).addTo(
+    const markersOfSchools = queryResult.pointsOfSchools.map((school) =>
+      new L.Marker([school.position.lat, school.position.lng], { icon: greenCircleIcon }).addTo(
         map,
       ),
     );
@@ -129,12 +147,20 @@ export function Map() {
     };
   }, [map, queryResult]);
 
+   
+
   return (
-    <div
-      ref={ref}
-      style={{
-        height: "calc(100dvh - var(--app-shell-header-height))",
-      }}
-    />
+    <div>
+      <div
+        ref={ref}
+        style={{
+          height: "calc(100dvh - var(--app-shell-header-height))",
+        }}
+      />
+      <div>
+        <h1> Mögliche Gründe für Tempo 30</h1>
+        <ListResults />
+      </div>
+    </div>      
   );
 }
