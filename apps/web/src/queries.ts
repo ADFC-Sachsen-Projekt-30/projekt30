@@ -38,6 +38,28 @@ nwr[amenity=school](around:{{distance}},{{coord}});
 out center;
 `;
 
+const queryStringMainStreet = `
+// Findet Hauptstraßen um die Koordinaten {{coord}} mit Abstand {{distance}}
+// und gibt das gefundenen Objekt inklusive Zentrum zurück
+[out:json][timeout:800];
+
+way[highway][highway~"(primary|secondary|tertiary)"](around:{{distance}},{{coord}});
+out center;
+`;
+
+
+const queryStringAdminUnit = `
+// Findet die Gemeinde, die für Koordinaten {{coord}} zuständig ist
+// und gibt das gefundenen Objekt inklusive Zentrum zurück
+// (Admin Level 6 = Kreis / Kreisfreie Stadt;  Admin Level 8 Gemeinde / Stadt im Landkreis)
+[out:json][timeout:800];
+
+  is_in({{coord}})->.a;
+  relation(pivot.a)[boundary=administrative][admin_level=6];
+ // ({{bbox}});
+out tags center;
+`;
+
 
 
 const overpassApiQueryResultRuntype = z.object({
@@ -162,14 +184,16 @@ export async function runQuery(bbox: LatLngBounds) {
   return parseResponseToCoordinates( response );
 }
 
-export async function runSchoolQuery(point: LatLng, distance: number) {
+
+
+async function runCoordQuery(baseQuery: string, point: LatLng, distance: number) {
   /*
-   Runs a query where placeholder {{coord}} is replaced by the coordinate 
-   string for parameter point and placeholde {{distance}} is replaced by 
+   Runs an Overpass-query baseQuery where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point and placeholder {{distance}} is replaced by 
    parameter distance
   */
   const pointString = `${point.lat},${point.lng}`;
-  const query = queryStringSchools.replaceAll("{{coord}}", pointString).replaceAll("{{distance}}", distance.toString());
+  const query = baseQuery.replaceAll("{{coord}}", pointString).replaceAll("{{distance}}", distance.toString());
  
   const response = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
@@ -178,4 +202,36 @@ export async function runSchoolQuery(point: LatLng, distance: number) {
 
   return parseResponseToSchool( response );
 
+}
+
+
+export async function runSchoolQuery(point: LatLng, distance: number) {
+  /*
+   Runs the query for Schools where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point and placeholder {{distance}} is replaced by 
+   parameter distance
+  */
+
+   return runCoordQuery(queryStringSchools, point, distance);
+}
+
+
+export async function runMainStreetQuery(point: LatLng) {
+  /*
+   Runs the query for main Streets where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point and placeholder {{distance}} is replaced by 5.0m
+   TODO Experimentally detect the best value for distance
+  */
+
+   return runCoordQuery(queryStringMainStreet, point, 5.0);
+}
+
+export async function runAdminUnitQuery(point: LatLng) {
+  /*
+   Runs the query for Admin unit where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point 
+  */
+
+   // "distance" 0.0 is unused and could be eliminated in a refactoring
+   return runCoordQuery(queryStringAdminUnit, point, 0.0);
 }

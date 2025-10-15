@@ -2,22 +2,35 @@ import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "./store";
-import type { School } from "./types";
+import type { NamedObjectWithPosition } from "./types";
 
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setBbox, setQueryCoord, queryResult } = useStore();
+  const { setBbox, setQueryCoord, queryResult, mainStreetsAtCoord: mainStreetsAtCoord } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
 
   
+function ListMainStreets() {
+    /* Create a  list entry for each Street we found*/ 
+    if (mainStreetsAtCoord) {
+      return (
+        <>
+          <ul>
+           {mainStreetsAtCoord.map( (mainStreetAtCoord: NamedObjectWithPosition) => <li> {mainStreetAtCoord.name} TODO Auswahl ermöglichen bei mehreren </li>)}
+          </ul>
+        </>
+      );
+    }
+  }
+
   function ListResults() {
-            //{queryResult.pointsOfSchools.map( (point) => <li> point </li>)}
+    /* Listet alle gefundenen Schulen im Umkreis der Suchkoordinate auf */
     if (queryResult) {
       return (
         <>
           <ul>
-           {queryResult.pointsOfSchools.map( (school: School) => <li> {school.name} in der Nähe von {school.position.lat}, {school.position.lng}</li>)}
+           {queryResult.pointsOfSchools.map( (school: NamedObjectWithPosition) => <li> {school.name} in der Nähe von {school.position.lat}, {school.position.lng}</li>)}
           </ul>
         </>
       );
@@ -145,7 +158,7 @@ export function Map() {
       markersOfSchools.forEach((m) => m.remove());
       markers.forEach((m) => m.remove());
     };
-  }, [map, queryResult]);
+  }, [map, queryResult, mainStreetsAtCoord]);
 
    
 
@@ -158,7 +171,15 @@ export function Map() {
         }}
       />
       <div>
-        <h1> Mögliche Gründe für Tempo 30</h1>
+        <h1>Mögliche Gründe für Tempo 30</h1>
+        <h3>Suche an Koordinate TODO Koordinate Angeben</h3>
+        TODO "Ladebalken" solange queries ausgeführt werden
+        <h3>Möglicherweise betroffene Straßen</h3>
+        <ListMainStreets />
+        <h3> Zuständige Behörde </h3>
+        TODO Create function ShowAdminUnit
+        TODO Mapping von Gemeinde/Stadt
+        <h3>Schulen, die Tempo 30 ermöglichen könnten</h3> 
         <ListResults />
       </div>
     </div>      

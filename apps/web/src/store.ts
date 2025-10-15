@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { runQuery, runSchoolQuery } from "./queries";
+import { runQuery, runSchoolQuery, runMainStreetQuery } from "./queries";
 //import { runQuery } from "./queries";
-import type { LatLng, LatLngBounds, QueryResult, School } from "./types";
+import type { LatLng, LatLngBounds, QueryResult, NamedObjectWithPosition } from "./types";
 
 interface Store {
   // current map bounding box
@@ -13,6 +13,8 @@ interface Store {
   queryCoord: LatLng | null;
   setQueryCoord(queryCoord: LatLng): void;
 
+  mainStreetsAtCoord: NamedObjectWithPosition[] | null;
+  setmainStreetAtCoord(mainStreetAtCoord: NamedObjectWithPosition[]) : void;
 
   // overpass api query result
   queryResult: QueryResult | null;
@@ -32,6 +34,10 @@ export const useStore = create<Store>()(
       set((state) => ({ ...state, queryCoord }));
     },
 
+    mainStreetsAtCoord: null, 
+    setmainStreetAtCoord: (mainStreetAtCoord) =>
+      set( (state) => ({ ...state, mainStreetsAtCoord: mainStreetAtCoord}))  
+    ,
 
     queryResult: null,
     setQueryResult: (queryResult) =>
@@ -44,9 +50,23 @@ export const useStore = create<Store>()(
       if (!bbox) {
         return;
       }
-
-      let resultSchools: School[];
       const result = await runQuery(bbox);
+
+      let resultMainStreetsAtCoord: NamedObjectWithPosition[];
+
+      resultMainStreetsAtCoord=[];
+      
+      if (queryCoord) {
+        // TODO: Ich benutze 100m Abstand zur Schule, weil ich gerade nicht herausfinden kann, was der Abstand tatsächlich sein darf
+        resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
+      }
+
+      //TODO Run ADmin-Unit query and store admin unit
+
+      //TODO Refactoring: Run queries in parallel and update Map / Result lists whenever one of the queries terminates
+
+      let resultSchools: NamedObjectWithPosition[];
+      
       
       resultSchools=[];
       
@@ -54,7 +74,10 @@ export const useStore = create<Store>()(
         // TODO: Ich benutze 100m Abstand zur Schule, weil ich gerade nicht herausfinden kann, was der Abstand tatsächlich sein darf
         resultSchools = await runSchoolQuery(queryCoord, 100);
       }
-      set((state) => ({ ...state, queryResult: { points: result, pointsOfSchools: resultSchools
+
+      set((state) => ({ ...state,
+        mainStreetsAtCoord: resultMainStreetsAtCoord,
+        queryResult: { points: result, pointsOfSchools: resultSchools
          } }));
     },
   })),
