@@ -137,7 +137,7 @@ async function parseResponseToCoordinates( response: Response){
 
 }
 
-async function parseResponseToSchool( response: Response){
+async function parseResponseToNamedObjectWithPosition( response: Response){
 
     const result = await response.json();
 
@@ -200,7 +200,7 @@ async function runCoordQuery(baseQuery: string, point: LatLng, distance: number)
     body: "data=" + encodeURIComponent(query),
   });
 
-  return parseResponseToSchool( response );
+  return parseResponseToNamedObjectWithPosition( response );
 
 }
 
@@ -233,5 +233,14 @@ export async function runAdminUnitQuery(point: LatLng) {
   */
 
    // "distance" 0.0 is unused and could be eliminated in a refactoring
-   return runCoordQuery(queryStringAdminUnit, point, 0.0);
+   const adminUnits = await runCoordQuery(queryStringAdminUnit, point, 0.0);
+
+   
+    if (adminUnits.length > 0) {
+      return adminUnits.at(0)
+    } 
+    
+    return null;
+
+
 }

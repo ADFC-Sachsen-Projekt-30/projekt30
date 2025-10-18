@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { runQuery, runSchoolQuery, runMainStreetQuery } from "./queries";
+import { runQuery, runSchoolQuery, runMainStreetQuery, runAdminUnitQuery } from "./queries";
 //import { runQuery } from "./queries";
 import type { LatLng, LatLngBounds, QueryResult, NamedObjectWithPosition } from "./types";
 
@@ -12,6 +12,9 @@ interface Store {
   // current coordinate for coordinate based requests
   queryCoord: LatLng | null;
   setQueryCoord(queryCoord: LatLng): void;
+
+  adminUnitAtCoord: NamedObjectWithPosition | null;
+  setAdminUnitAtCoord(adminUnitAtCoord: NamedObjectWithPosition) : void;
 
   mainStreetsAtCoord: NamedObjectWithPosition[] | null;
   setmainStreetAtCoord(mainStreetAtCoord: NamedObjectWithPosition[]) : void;
@@ -39,6 +42,12 @@ export const useStore = create<Store>()(
       set( (state) => ({ ...state, mainStreetsAtCoord: mainStreetAtCoord}))  
     ,
 
+    adminUnitAtCoord: null, 
+    setAdminUnitAtCoord: (adminUnitAtCoord) =>
+      set( (state) => ({ ...state, adminUnitAtCoord: adminUnitAtCoord}))  
+    ,
+
+
     queryResult: null,
     setQueryResult: (queryResult) =>
       set((state) => ({ ...state, queryResult })),
@@ -52,31 +61,25 @@ export const useStore = create<Store>()(
       }
       const result = await runQuery(bbox);
 
+      let resultAdminUnitAtCoord: NamedObjectWithPosition | null;
+      resultAdminUnitAtCoord = null;
+
       let resultMainStreetsAtCoord: NamedObjectWithPosition[];
-
       resultMainStreetsAtCoord=[];
-      
-      if (queryCoord) {
-        // TODO: Ich benutze 100m Abstand zur Schule, weil ich gerade nicht herausfinden kann, was der Abstand tatsächlich sein darf
-        resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
-      }
-
-      //TODO Run ADmin-Unit query and store admin unit
-
-      //TODO Refactoring: Run queries in parallel and update Map / Result lists whenever one of the queries terminates
-
       let resultSchools: NamedObjectWithPosition[];
-      
-      
       resultSchools=[];
-      
+      //TODO Refactoring: Run queries in parallel and update Map / Result lists whenever one of the queries terminates
       if (queryCoord) {
+        resultAdminUnitAtCoord = await runAdminUnitQuery(queryCoord) || null;
+        resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
         // TODO: Ich benutze 100m Abstand zur Schule, weil ich gerade nicht herausfinden kann, was der Abstand tatsächlich sein darf
         resultSchools = await runSchoolQuery(queryCoord, 100);
+        
       }
 
       set((state) => ({ ...state,
         mainStreetsAtCoord: resultMainStreetsAtCoord,
+        adminUnitAtCoord: resultAdminUnitAtCoord,
         queryResult: { points: result, pointsOfSchools: resultSchools
          } }));
     },
