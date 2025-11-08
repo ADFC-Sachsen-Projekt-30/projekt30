@@ -55,7 +55,7 @@ const queryStringAdminUnit = `
 [out:json][timeout:800];
 
   is_in({{coord}})->.a;
-  relation(pivot.a)[boundary=administrative][admin_level=6];
+  relation(pivot.a)[boundary=administrative][admin_level=8];
  // ({{bbox}});
 out tags center;
 `;
