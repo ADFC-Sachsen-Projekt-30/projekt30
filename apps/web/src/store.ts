@@ -72,7 +72,6 @@ export const useStore = create<Store>()(
       if (queryCoord) {
         resultAdminUnitAtCoord = await runAdminUnitQuery(queryCoord) || null;
         resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
-        // TODO: Ich benutze 100m Abstand zur Schule, weil ich gerade nicht herausfinden kann, was der Abstand tatsächlich sein darf
         resultSchools = await runSchoolQuery(queryCoord, 150);
         
       }
