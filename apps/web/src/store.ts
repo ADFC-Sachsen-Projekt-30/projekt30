@@ -1,13 +1,9 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { runQuery, runSchoolQuery, runMainStreetQuery, runAdminUnitQuery } from "./queries";
-//import { runQuery } from "./queries";
-import type { LatLng, LatLngBounds, QueryResult, NamedObjectWithPosition } from "./types";
+import { runSchoolQuery, runMainStreetQuery, runAdminUnitQuery } from "./queries";
+import type { LatLng, QueryResult, NamedObjectWithPosition } from "./types";
 
 interface Store {
-  // current map bounding box
-  bbox: LatLngBounds | null;
-  setBbox(bbox: LatLngBounds): void;
 
   // current coordinate for coordinate based requests
   queryCoord: LatLng | null;
@@ -15,6 +11,7 @@ interface Store {
 
   adminUnitAtCoord: NamedObjectWithPosition | null;
   setAdminUnitAtCoord(adminUnitAtCoord: NamedObjectWithPosition) : void;
+
 
   mainStreetsAtCoord: NamedObjectWithPosition[] | null;
   setmainStreetAtCoord(mainStreetAtCoord: NamedObjectWithPosition[]) : void;
@@ -27,10 +24,6 @@ interface Store {
 
 export const useStore = create<Store>()(
   subscribeWithSelector((set, get) => ({
-    bbox: null,
-    setBbox: (bbox) => {
-      set((state) => ({ ...state, bbox }));
-    },
 
     queryCoord: null,
     setQueryCoord: (queryCoord) => {
@@ -47,19 +40,14 @@ export const useStore = create<Store>()(
       set( (state) => ({ ...state, adminUnitAtCoord: adminUnitAtCoord}))  
     ,
 
-
     queryResult: null,
     setQueryResult: (queryResult) =>
       set((state) => ({ ...state, queryResult })),
     fetchQuery: async () => {
-      const { bbox, queryCoord } = get();
+      const { queryCoord } = get();
 
       // Debug alert(queryCoord?.lat.toString() + " " + queryCoord?.lng.toString());
 
-      if (!bbox) {
-        return;
-      }
-      const result = await runQuery(bbox);
 
       let resultAdminUnitAtCoord: NamedObjectWithPosition | null;
       resultAdminUnitAtCoord = null;
@@ -79,7 +67,7 @@ export const useStore = create<Store>()(
       set((state) => ({ ...state,
         mainStreetsAtCoord: resultMainStreetsAtCoord,
         adminUnitAtCoord: resultAdminUnitAtCoord,
-        queryResult: { points: result, pointsOfSchools: resultSchools
+        queryResult: { pointsOfSchools: resultSchools
          } }));
     },
   })),

@@ -15,6 +15,5 @@ export interface LatLngBounds {
 }
 
 export interface QueryResult {
-  points: LatLng[];
   pointsOfSchools: NamedObjectWithPosition[];
 }

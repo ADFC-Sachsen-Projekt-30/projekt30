@@ -7,7 +7,7 @@ import type { NamedObjectWithPosition } from "./types";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setBbox, queryCoord, setQueryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord } = useStore();
+  const { queryCoord, setQueryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
 
   
@@ -78,38 +78,7 @@ function ShowAdminUnit() {
       });  
     }
 
-    function handleBboxChange() {
-      const leafletBbox = map.getBounds();
-      const leafletCenter = map.getCenter();
-      const sw = leafletBbox.getSouthWest();
-      const ne = leafletBbox.getNorthEast();
 
-      const bboxSizeInM = map.distance(sw, ne);
-
-      if (bboxSizeInM > 1_000) {
-        // hack to avoid large queries on overpass
-        return;
-      }
-
-
-
-      setBbox({
-        southWest: { lat: sw.lat, lng: sw.lng },
-        northEast: { lat: ne.lat, lng: ne.lng },
-      });
-
-      // Temporary hack to test coordiante queries before click event is established
-      // Use center of map.   If you remove this, then we need a subscribe on changes to the bbox-value
-      // to reevaluate the queries
-      setQueryCoord( {
-        lat: leafletCenter.lat, 
-        lng: leafletCenter.lng
-      });
-      
-
-    }
-
-    map.on("moveend", handleBboxChange);
     map.on("click", handleClick);
 
     new L.TileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -124,7 +93,7 @@ function ShowAdminUnit() {
       setMap(null);
       map.remove();
     };
-  }, [ref, setBbox, setQueryCoord]);
+  }, [ref, setQueryCoord]);
 
   useEffect(() => {
     if (!map) {
@@ -137,19 +106,6 @@ function ShowAdminUnit() {
       return;
     }
 
-    // does not need the default leaflet map icon to be present in the assets
-    const redCircleIcon = new L.DivIcon({
-      className: "red-circle-marker",
-      html: '<div style="width: 8px; height: 8px; background-color: red; border-radius: 50%; border: none; opacity: 0.6"></div>',
-      iconSize: [8, 8],
-      iconAnchor: [4, 4],
-    });
-
-    const markers = queryResult.points.map((location) =>
-      new L.Marker([location.lat, location.lng], { icon: redCircleIcon }).addTo(
-        map,
-      ),
-    );
 
     const greenCircleIcon = new L.DivIcon({
       className: "green-circle-marker",
@@ -168,7 +124,6 @@ function ShowAdminUnit() {
 
     return () => {
       markersOfSchools.forEach((m) => m.remove());
-      markers.forEach((m) => m.remove());
     };
   }, [map, queryResult, mainStreetsAtCoord]);
 

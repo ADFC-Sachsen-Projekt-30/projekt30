@@ -47,17 +47,16 @@ way[highway][highway~"(primary|secondary|tertiary)"](around:{{distance}},{{coord
 out center;
 `;
 
-
-const queryStringAdminUnit = `
 // Findet die Gemeinde, die für Koordinaten {{coord}} zuständig ist
 // und gibt das gefundenen Objekt inklusive Zentrum zurück
 // (Admin Level 6 = Kreis / Kreisfreie Stadt;  Admin Level 8 Gemeinde / Stadt im Landkreis)
+// Wichtig: In Dresden liefert die Query für admin_level 8 kein Ergebnis
+const queryStringAdminUnit = `
 [out:json][timeout:800];
 
   is_in({{coord}})->.a;
   relation(pivot.a)[boundary=administrative][admin_level=8];
- // ({{bbox}});
-out tags center;
+ out tags center;
 `;
 
 
