@@ -8,7 +8,6 @@ export interface NamedObjectWithPosition {
   position: LatLng;
 }
 
-
 export interface LatLngBounds {
   southWest: LatLng;
   northEast: LatLng;

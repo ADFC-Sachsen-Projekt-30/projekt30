@@ -1,20 +1,22 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { runSchoolQuery, runMainStreetQuery, runAdminUnitQuery } from "./queries";
+import {
+  runSchoolQuery,
+  runMainStreetQuery,
+  runAdminUnitQuery,
+} from "./queries";
 import type { LatLng, QueryResult, NamedObjectWithPosition } from "./types";
 
 interface Store {
-
   // current coordinate for coordinate based requests
   queryCoord: LatLng | null;
   setQueryCoord(queryCoord: LatLng): void;
 
   adminUnitAtCoord: NamedObjectWithPosition | null;
-  setAdminUnitAtCoord(adminUnitAtCoord: NamedObjectWithPosition) : void;
-
+  setAdminUnitAtCoord(adminUnitAtCoord: NamedObjectWithPosition): void;
 
   mainStreetsAtCoord: NamedObjectWithPosition[] | null;
-  setmainStreetAtCoord(mainStreetAtCoord: NamedObjectWithPosition[]) : void;
+  setmainStreetAtCoord(mainStreetAtCoord: NamedObjectWithPosition[]): void;
 
   // overpass api query result
   queryResult: QueryResult | null;
@@ -24,22 +26,17 @@ interface Store {
 
 export const useStore = create<Store>()(
   subscribeWithSelector((set, get) => ({
-
     queryCoord: null,
     setQueryCoord: (queryCoord) => {
       set((state) => ({ ...state, queryCoord }));
     },
 
-    mainStreetsAtCoord: null, 
+    mainStreetsAtCoord: null,
     setmainStreetAtCoord: (mainStreetAtCoord) =>
-      set( (state) => ({ ...state, mainStreetsAtCoord: mainStreetAtCoord}))  
-    ,
-
-    adminUnitAtCoord: null, 
+      set((state) => ({ ...state, mainStreetsAtCoord: mainStreetAtCoord })),
+    adminUnitAtCoord: null,
     setAdminUnitAtCoord: (adminUnitAtCoord) =>
-      set( (state) => ({ ...state, adminUnitAtCoord: adminUnitAtCoord}))  
-    ,
-
+      set((state) => ({ ...state, adminUnitAtCoord: adminUnitAtCoord })),
     queryResult: null,
     setQueryResult: (queryResult) =>
       set((state) => ({ ...state, queryResult })),
@@ -48,27 +45,26 @@ export const useStore = create<Store>()(
 
       // Debug alert(queryCoord?.lat.toString() + " " + queryCoord?.lng.toString());
 
-
       let resultAdminUnitAtCoord: NamedObjectWithPosition | null;
       resultAdminUnitAtCoord = null;
 
       let resultMainStreetsAtCoord: NamedObjectWithPosition[];
-      resultMainStreetsAtCoord=[];
+      resultMainStreetsAtCoord = [];
       let resultSchools: NamedObjectWithPosition[];
-      resultSchools=[];
+      resultSchools = [];
       //TODO Refactoring: Run queries in parallel and update Map / Result lists whenever one of the queries terminates
       if (queryCoord) {
-        resultAdminUnitAtCoord = await runAdminUnitQuery(queryCoord) || null;
+        resultAdminUnitAtCoord = (await runAdminUnitQuery(queryCoord)) || null;
         resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
         resultSchools = await runSchoolQuery(queryCoord, 150);
-        
       }
 
-      set((state) => ({ ...state,
+      set((state) => ({
+        ...state,
         mainStreetsAtCoord: resultMainStreetsAtCoord,
         adminUnitAtCoord: resultAdminUnitAtCoord,
-        queryResult: { pointsOfSchools: resultSchools
-         } }));
+        queryResult: { pointsOfSchools: resultSchools },
+      }));
     },
   })),
 );

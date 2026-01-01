@@ -4,37 +4,45 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "./store";
 import type { NamedObjectWithPosition } from "./types";
 
-
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { queryCoord, setQueryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord } = useStore();
+  const {
+    queryCoord,
+    setQueryCoord,
+    queryResult,
+    mainStreetsAtCoord,
+    adminUnitAtCoord,
+  } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
 
-  
-function ListMainStreets() {
-    /* Create a  list entry for each Street we found*/ 
+  function ListMainStreets() {
+    /* Create a  list entry for each Street we found*/
     if (mainStreetsAtCoord) {
       return (
         <>
           <ul>
-           {mainStreetsAtCoord.map( (mainStreetAtCoord: NamedObjectWithPosition) => <li> {mainStreetAtCoord.name} </li>)}
+            {mainStreetsAtCoord.map(
+              (mainStreetAtCoord: NamedObjectWithPosition) => (
+                <li> {mainStreetAtCoord.name} </li>
+              ),
+            )}
           </ul>
         </>
       );
     }
   }
 
-function ShowAdminUnit() {
-    /* Shows the administrive unit found at the coordinate*/ 
+  function ShowAdminUnit() {
+    /* Shows the administrive unit found at the coordinate*/
     if (adminUnitAtCoord) {
       return (
         <>
-          {adminUnitAtCoord.name} TODO: müssen wir mehrere zuständige Stellen handeln? Grenzfälle? 
+          {adminUnitAtCoord.name} TODO: müssen wir mehrere zuständige Stellen
+          handeln? Grenzfälle?
         </>
       );
     }
   }
-
 
   function ListResults() {
     /* Listet alle gefundenen Schulen im Umkreis der Suchkoordinate auf */
@@ -42,16 +50,22 @@ function ShowAdminUnit() {
       return (
         <>
           <ul>
-           {queryResult.pointsOfSchools.map( (school: NamedObjectWithPosition) => <li> {school.name} in der Nähe von {school.position.lat}, {school.position.lng}</li>)}
+            {queryResult.pointsOfSchools.map(
+              (school: NamedObjectWithPosition) => (
+                <li>
+                  {" "}
+                  {school.name} in der Nähe von {school.position.lat},{" "}
+                  {school.position.lng}
+                </li>
+              ),
+            )}
           </ul>
         </>
       );
     }
   }
-  
 
-
-   // Setup leaflet 2.0 (class based api) manually.
+  // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
   // version (preact is missing react v19 `use` hook) and I didn't want to
   // switch back to react.
@@ -70,14 +84,13 @@ function ShowAdminUnit() {
       18,
     );
 
-   function handleClick( event : L.LeafletMouseEvent) {
+    function handleClick(event: L.LeafletMouseEvent) {
       const position = event.latlng;
-      setQueryCoord( {
-        lat: position.lat, 
-        lng: position.lng
-      });  
+      setQueryCoord({
+        lat: position.lat,
+        lng: position.lng,
+      });
     }
-
 
     map.on("click", handleClick);
 
@@ -100,12 +113,9 @@ function ShowAdminUnit() {
       return;
     }
 
-
-
     if (!queryResult) {
       return;
     }
-
 
     const greenCircleIcon = new L.DivIcon({
       className: "green-circle-marker",
@@ -115,19 +125,15 @@ function ShowAdminUnit() {
     });
 
     const markersOfSchools = queryResult.pointsOfSchools.map((school) =>
-      new L.Marker([school.position.lat, school.position.lng], { icon: greenCircleIcon }).addTo(
-        map,
-      ),
+      new L.Marker([school.position.lat, school.position.lng], {
+        icon: greenCircleIcon,
+      }).addTo(map),
     );
-
-
 
     return () => {
       markersOfSchools.forEach((m) => m.remove());
     };
   }, [map, queryResult, mainStreetsAtCoord]);
-
-   
 
   return (
     <div>
@@ -139,24 +145,34 @@ function ShowAdminUnit() {
       />
       <div>
         <h1>Mögliche Gründe für Tempo 30</h1>
-        {queryCoord? <h3>Suche an Koordinate {queryCoord?.lat}, {queryCoord?.lng}</h3>: ""}
+        {queryCoord ? (
+          <h3>
+            Suche an Koordinate {queryCoord?.lat}, {queryCoord?.lng}
+          </h3>
+        ) : (
+          ""
+        )}
         TODO "Ladebalken" solange queries ausgeführt werden
         <h3>Möglicherweise betroffene Straßen</h3>
-        TODO Auswahl bei mehreren Straßen
-        TODO Zusammenführen von Straßen, die den gleichen Namen haben (?)
+        TODO Auswahl bei mehreren Straßen TODO Zusammenführen von Straßen, die
+        den gleichen Namen haben (?)
         <ListMainStreets />
-        <h3> Zuständige Behörde: <ShowAdminUnit /> </h3>
-        TODO Mapping von Gemeinde/Stadt auf die zuständige Behörde (mit Adresse / E-Mail etc.)
-        <h3>Schulen, die Tempo 30 ermöglichen könnten</h3> 
-        TODO: Auswahl und dann Checkliste / Wizzard starten: 
+        <h3>
+          {" "}
+          Zuständige Behörde: <ShowAdminUnit />{" "}
+        </h3>
+        TODO Mapping von Gemeinde/Stadt auf die zuständige Behörde (mit Adresse
+        / E-Mail etc.)
+        <h3>Schulen, die Tempo 30 ermöglichen könnten</h3>
+        TODO: Auswahl und dann Checkliste / Wizzard starten:
         <ul>
           <li> Ist die Schule allgemeinbildend (d.h. ...)?</li>
           <li> Liegt sie direkt an der Straße (d.h. ...)?</li>
           <li> weitere Prüfkriterien</li>
-        </ul>   
+        </ul>
         Gefundene Schulen:
         <ListResults />
       </div>
-    </div>      
+    </div>
   );
 }
