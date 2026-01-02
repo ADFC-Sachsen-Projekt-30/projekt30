@@ -1,69 +1,13 @@
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
+import { BottomCollapse } from "./BottomCollapse";
 import { useStore } from "./store";
-import type { NamedObjectWithPosition } from "./types";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const {
-    queryCoord,
-    setQueryCoord,
-    queryResult,
-    mainStreetsAtCoord,
-    adminUnitAtCoord,
-  } = useStore();
+  const { setQueryCoord, queryResult, mainStreetsAtCoord } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
-
-  function ListMainStreets() {
-    /* Create a  list entry for each Street we found*/
-    if (mainStreetsAtCoord) {
-      return (
-        <>
-          <ul>
-            {mainStreetsAtCoord.map(
-              (mainStreetAtCoord: NamedObjectWithPosition) => (
-                <li> {mainStreetAtCoord.name} </li>
-              ),
-            )}
-          </ul>
-        </>
-      );
-    }
-  }
-
-  function ShowAdminUnit() {
-    /* Shows the administrive unit found at the coordinate*/
-    if (adminUnitAtCoord) {
-      return (
-        <>
-          {adminUnitAtCoord.name} TODO: müssen wir mehrere zuständige Stellen
-          handeln? Grenzfälle?
-        </>
-      );
-    }
-  }
-
-  function ListResults() {
-    /* Listet alle gefundenen Schulen im Umkreis der Suchkoordinate auf */
-    if (queryResult) {
-      return (
-        <>
-          <ul>
-            {queryResult.pointsOfSchools.map(
-              (school: NamedObjectWithPosition) => (
-                <li>
-                  {" "}
-                  {school.name} in der Nähe von {school.position.lat},{" "}
-                  {school.position.lng}
-                </li>
-              ),
-            )}
-          </ul>
-        </>
-      );
-    }
-  }
 
   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
@@ -135,43 +79,33 @@ export function Map() {
     };
   }, [map, queryResult, mainStreetsAtCoord]);
 
+  const bottomHeight = "2rem";
+
   return (
     <div>
       <div
         ref={ref}
         style={{
-          height: "calc(100dvh - var(--app-shell-header-height))",
+          height: `calc(100dvh - var(--app-shell-header-height) - ${bottomHeight})`,
+          zIndex: "var(--mantine-z-index-app)",
         }}
       />
-      <div>
-        <h1>Mögliche Gründe für Tempo 30</h1>
-        {queryCoord ? (
-          <h3>
-            Suche an Koordinate {queryCoord?.lat}, {queryCoord?.lng}
-          </h3>
-        ) : (
-          ""
-        )}
-        TODO "Ladebalken" solange queries ausgeführt werden
-        <h3>Möglicherweise betroffene Straßen</h3>
-        TODO Auswahl bei mehreren Straßen TODO Zusammenführen von Straßen, die
-        den gleichen Namen haben (?)
-        <ListMainStreets />
-        <h3>
-          {" "}
-          Zuständige Behörde: <ShowAdminUnit />{" "}
-        </h3>
-        TODO Mapping von Gemeinde/Stadt auf die zuständige Behörde (mit Adresse
-        / E-Mail etc.)
-        <h3>Schulen, die Tempo 30 ermöglichen könnten</h3>
-        TODO: Auswahl und dann Checkliste / Wizzard starten:
-        <ul>
-          <li> Ist die Schule allgemeinbildend (d.h. ...)?</li>
-          <li> Liegt sie direkt an der Straße (d.h. ...)?</li>
-          <li> weitere Prüfkriterien</li>
-        </ul>
-        Gefundene Schulen:
-        <ListResults />
+      <div
+        style={{
+          position: "relative",
+          height: bottomHeight,
+        }}
+      >
+        <BottomCollapse
+          style={{
+            zIndex: "calc(var(--mantine-z-index-app) + 10)",
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            backgroundColor: "var(--mantine-color-body)",
+            borderRadius: "1rem",
+          }}
+        />
       </div>
     </div>
   );
