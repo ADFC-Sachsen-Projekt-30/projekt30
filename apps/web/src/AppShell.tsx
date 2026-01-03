@@ -1,4 +1,4 @@
-import { Burger, Group, AppShell as MantineAppShell } from "@mantine/core";
+import { Burger, AppShell as MantineAppShell } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { useDisclosure } from "@mantine/hooks";
 import { Map } from "./Map";
@@ -8,8 +8,11 @@ export function AppShell() {
 
   return (
     <MantineAppShell
-      header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      navbar={{
+        width: 300,
+        breakpoint: "sm",
+        collapsed: { mobile: !opened, desktop: !opened },
+      }}
       padding={0}
       zIndex={
         // let app shell (esp the navbar) hover above the leaflet map (base
@@ -17,13 +20,26 @@ export function AppShell() {
         2000
       }
     >
-      <MantineAppShell.Header>
-        <Group h="100%" px="md">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          Project 30
-        </Group>
-      </MantineAppShell.Header>
-      <MantineAppShell.Navbar p="md">Navbar</MantineAppShell.Navbar>
+      <Burger
+        opened={opened}
+        onClick={toggle}
+        size="md"
+        lineSize="2px"
+        style={{
+          position: "absolute",
+          top: "0rem",
+          left: "0rem",
+          zIndex: "2010", // burger must hover over map
+          backgroundColor: "var(--mantine-color-body)",
+          margin: "0.5rem",
+          borderColor: "var(--mantine-color-default-border)",
+          border: "1px var(--mantine-color-default-border) solid",
+          padding: "0.25rem 0.25rem 0.25rem 0.25rem",
+        }}
+      />
+      <MantineAppShell.Navbar p="md" style={{ paddingTop: "4rem" }}>
+        Navbar
+      </MantineAppShell.Navbar>
       <MantineAppShell.Main>
         <Map />
       </MantineAppShell.Main>

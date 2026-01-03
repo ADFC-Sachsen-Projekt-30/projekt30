@@ -19,14 +19,18 @@ export function Map() {
     }
 
     const div = ref.current;
+    const map = new L.Map(div);
 
-    const map = new L.Map(div).setView(
+    map.setView(
       // markers for the demo query
       [51.063, 13.7612],
       // adfc dd
       // [51.063623, 13.751474]
       18,
     );
+
+    // default zoom control position interferes with AppShell Burger button
+    map.removeControl(map.zoomControl);
 
     function handleClick(event: L.LeafletMouseEvent) {
       const position = event.latlng;
@@ -86,7 +90,7 @@ export function Map() {
       <div
         ref={ref}
         style={{
-          height: `calc(100dvh - var(--app-shell-header-height) - ${bottomHeight})`,
+          height: `calc(100dvh - ${bottomHeight})`,
           zIndex: "var(--mantine-z-index-app)",
         }}
       />
