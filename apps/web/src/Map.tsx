@@ -1,3 +1,5 @@
+import { ActionIcon } from "@mantine/core";
+import { IconCircleFilled } from "@tabler/icons-react";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +10,8 @@ export function Map() {
   const ref = useRef<HTMLDivElement>(null);
   const { setQueryCoord, queryResult, mainStreetsAtCoord } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
+  const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
@@ -34,6 +38,7 @@ export function Map() {
 
     function handleClick(event: L.LeafletMouseEvent) {
       const position = event.latlng;
+
       setQueryCoord({
         lat: position.lat,
         lng: position.lng,
@@ -83,17 +88,107 @@ export function Map() {
     };
   }, [map, queryResult, mainStreetsAtCoord]);
 
+  // user location marker
+  useEffect(() => {
+    if (!map || !userLocation) return;
+
+    // Create blue marker for user location
+    const blueCircleIcon = new L.DivIcon({
+      className: "user-location-marker",
+      html: '<div style="width: 12px; height: 12px; background-color: #228be6; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+
+    const userMarker = new L.Marker(userLocation, {
+      icon: blueCircleIcon,
+    }).addTo(map);
+
+    // Cleanup
+    return () => {
+      if (userMarker) {
+        userMarker.remove();
+      }
+    };
+  }, [map, userLocation]);
+
+  // browser gps
+  const getUserLocation = () => {
+    if (!map) return;
+
+    setIsLocating(true);
+
+    if (!navigator.geolocation) {
+      console.error("Geolocation not supported");
+      setIsLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const latLng = new L.LatLng(lat, lng);
+
+        map.setView(latLng, map.getZoom());
+        setUserLocation(latLng);
+
+        // same as clicking on map to trigger a query
+        setQueryCoord({
+          lat: lat,
+          lng: lng,
+        });
+
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Error getting location:", error.message);
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  };
+
+  // min height of the bottom collapse
   const bottomHeight = "2rem";
 
   return (
     <div>
+      {/* Leaflet map */}
       <div
         ref={ref}
         style={{
+          // exactly above the bottom collapse so the maps attribution is visible
           height: `calc(100dvh - ${bottomHeight})`,
           zIndex: "var(--mantine-z-index-app)",
         }}
       />
+
+      {/* GPS button */}
+      <ActionIcon
+        size="xl"
+        variant="white"
+        color="blue"
+        onClick={getUserLocation}
+        style={{
+          position: "absolute",
+          bottom: `calc(${bottomHeight} + 1rem)`, // position above bottom collapse
+          right: "1rem",
+          zIndex: "calc(var(--mantine-z-index-app) + 10)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+        }}
+        title="Meinen Standort finden"
+        aria-label="Meinen Standort finden"
+        loading={isLocating}
+      >
+        <IconCircleFilled />
+      </ActionIcon>
+
+      {/* bottom panel collapse */}
       <div
         style={{
           position: "relative",
@@ -102,7 +197,7 @@ export function Map() {
       >
         <BottomCollapse
           style={{
-            zIndex: "calc(var(--mantine-z-index-app) + 10)",
+            zIndex: "calc(var(--mantine-z-index-app) + 20)",
             position: "absolute",
             bottom: 0,
             width: "100%",

@@ -8,7 +8,7 @@ const theme = createTheme({
 
 export function App() {
   return (
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} defaultColorScheme="auto">
       <AppShell />
     </MantineProvider>
   );
