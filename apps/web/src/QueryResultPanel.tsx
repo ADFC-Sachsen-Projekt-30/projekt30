@@ -28,8 +28,7 @@ export function QueryResultPanel() {
     if (adminUnitAtCoord) {
       return (
         <>
-          {adminUnitAtCoord.name} TODO: müssen wir mehrere zuständige Stellen
-          handeln? Grenzfälle?
+          {adminUnitAtCoord.name} 
         </>
       );
     }

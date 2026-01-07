@@ -32,7 +32,7 @@ out center;
 const queryStringSchools = `
 // Findet Schulen um die Koordinaten {{coord}} mit Abstand {{distance}}
 // und gibt das Zentrum des gefundenen Objekts zurück
-[out:json][timeout:800];
+[out:json][timeout:10000];
 
 nwr[amenity=school](around:{{distance}},{{coord}});
 out center;

@@ -18,13 +18,16 @@
     "@tabler/icons-react": "^3.36.1",
     "@types/leaflet": "^1.9.20",
     "leaflet": "^2.0.0-alpha.1",
+    "papaparse": "^5.5.3",
     "preact": "^10.27.0",
+    "vite-string-plugin": "^1.4.9",
     "zod": "^4.1.11",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@preact/preset-vite": "^2.10.2",
+    "@types/papaparse": "^5.5.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "eslint": "^9.33.0",
