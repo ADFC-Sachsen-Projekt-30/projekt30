@@ -55,7 +55,7 @@ const queryStringAdminUnit = `
 [out:json][timeout:800];
 
   is_in({{coord}})->.a;
-  relation(pivot.a)[boundary=administrative][admin_level=8];
+  relation(pivot.a)[boundary=administrative][admin_level={{ADMINUNITLEVEL}}];
  out tags center;
 `;
 
@@ -222,12 +222,28 @@ export async function runAdminUnitQuery(point: LatLng) {
    string for parameter point 
   */
 
+  let query = queryStringAdminUnit.replaceAll("{{ADMINUNITLEVEL}}", "8");
+    
+  
+
+  console.log("Gemeindequery: ", query);
   // "distance" 0.0 is unused and could be eliminated in a refactoring
-  const adminUnits = await runCoordQuery(queryStringAdminUnit, point, 0.0);
+  let adminUnits = await runCoordQuery(query, point, 0.0);
 
   if (adminUnits.length > 0) {
     return adminUnits.at(0);
   }
+
+  
+  query = queryStringAdminUnit.replaceAll("{{ADMINUNITLEVEL}}", "6");
+
+  console.log("Stadtquery: ", query);
+  adminUnits = await runCoordQuery(query, point, 0.0);
+
+  if (adminUnits.length > 0) {
+    return adminUnits.at(0);
+  }
+
 
   return null;
 }
