@@ -191,11 +191,15 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
   });
 }
 
+function overpassServer() { 
+  // return "https://overpass-api.de/api/interpreter"  // 504 Gateway tiemout to often 
+  return "https://overpass.private.coffee/api/interpreter"}
+
 export async function runQuery(bbox: LatLngBounds) {
   const bboxString = `${bbox.southWest.lat},${bbox.southWest.lng},${bbox.northEast.lat},${bbox.northEast.lng}`;
   const query = queryString.replaceAll("{{bbox}}", bboxString);
 
-  const response = await fetch("https://overpass-api.de/api/interpreter", {
+  const response = await fetch(overpassServer(), {
     method: "POST",
     body: "data=" + encodeURIComponent(query),
   });
@@ -218,7 +222,7 @@ async function runCoordQuery(
     .replaceAll("{{coord}}", pointString)
     .replaceAll("{{distance}}", distance.toString());
 
-  const response = await fetch("https://overpass-api.de/api/interpreter", {
+  const response = await fetch(overpassServer(), {
     method: "POST",
     body: "data=" + encodeURIComponent(query),
   });
