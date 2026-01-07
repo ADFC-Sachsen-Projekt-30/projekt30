@@ -9,7 +9,7 @@ const queryString = `
 // GRAU: keine Infos vorhanden
 
 
-[out:json][timeout:800];
+[out:json][timeout:5000];
 (
   (
    nwr[amenity=hospital]({{bbox}});
@@ -41,7 +41,7 @@ out center;
 const queryStringMainStreet = `
 // Findet Hauptstraßen um die Koordinaten {{coord}} mit Abstand {{distance}}
 // und gibt das gefundenen Objekt inklusive Zentrum zurück
-[out:json][timeout:800];
+[out:json][timeout:5000];
 
 way[highway][highway~"(primary|secondary|tertiary)"](around:{{distance}},{{coord}});
 out center;
@@ -52,7 +52,7 @@ out center;
 // (Admin Level 6 = Kreis / Kreisfreie Stadt;  Admin Level 8 Gemeinde / Stadt im Landkreis)
 // Wichtig: In Dresden liefert die Query für admin_level 8 kein Ergebnis
 const queryStringAdminUnit = `
-[out:json][timeout:800];
+[out:json][timeout:5000];
 
   is_in({{coord}})->.a;
   relation(pivot.a)[boundary=administrative][admin_level={{ADMINUNITLEVEL}}];
@@ -101,6 +101,8 @@ const overpassApiQueryResultRuntype = z.object({
         tags: z.optional(
           z.object({
             name: z.optional(z.string()),
+            official_name: z.optional(z.string()),
+            "de:amtlicher_gemeindeschluessel": z.optional(z.string())
           }),
         ),
       }),
@@ -114,13 +116,24 @@ async function parseResponseToCoordinates(response: Response) {
   const typedResult = overpassApiQueryResultRuntype.parse(result);
 
   return typedResult.elements.flatMap((e) => {
-    if (e.type !== "node") {
+    if (e.type == "way") {
+      return {
+        lat: e.center.lat,
+        lng: e.center.lon,
+        name: e.tags?.name
+      };
+    }
+
+    if (e.type == "relation") {
       return {
         lat: e.center.lat,
         lng: e.center.lon,
         name: e.tags?.name,
+        official_name: e.tags?.official_name,
+        amtlicher_gemeindeschluessel: e.tags?.["de:amtlicher_gemeindeschluessel"]
       };
     }
+
 
     return {
       lat: e.lat,
@@ -132,6 +145,9 @@ async function parseResponseToCoordinates(response: Response) {
 
 async function parseResponseToNamedObjectWithPosition(response: Response) {
   const result = await response.json();
+
+  //console.log("Query Ergebnis");
+  //console.log(result);
 
   const typedResult = overpassApiQueryResultRuntype.parse(result);
 
@@ -150,12 +166,26 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
     }
 
     let name = "Unbekannt";
+    let official_name = "undefined";
+    let amtlicher_schluessel = "undefined";
     if (e.tags && e.tags.name) {
       name = e.tags.name;
+
+      if (e.type == "relation"){
+        if (e.tags.official_name) {
+          official_name = e.tags.official_name;
+        }
+        if (e.tags["de:amtlicher_gemeindeschluessel"]) {
+          amtlicher_schluessel = e.tags["de:amtlicher_gemeindeschluessel"];
+        }
+
+      }
     }
 
     return {
       name: name,
+      official_name: official_name,
+      amtlicher_schluessel: amtlicher_schluessel,
       position: position,
     };
   });

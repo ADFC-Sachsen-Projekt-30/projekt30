@@ -5,6 +5,7 @@ export interface LatLng {
 
 export interface NamedObjectWithPosition {
   name: string;
+  amtlicher_schluessel: string|null;
   position: LatLng;
 }
 

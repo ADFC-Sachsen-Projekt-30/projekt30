@@ -3,7 +3,7 @@ import { useStore } from "./store";
 import type { NamedObjectWithPosition } from "./types";
 
 export function QueryResultPanel() {
-  const { queryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord } =
+  const { queryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord, adminUnitsSaxony } =
     useStore();
 
   function ListMainStreets() {
@@ -26,9 +26,22 @@ export function QueryResultPanel() {
   function ShowAdminUnit() {
     /* Shows the administrive unit found at the coordinate*/
     if (adminUnitAtCoord) {
+      
+      const adminUnitData= adminUnitsSaxony?.find( adminUnit => {return adminUnitAtCoord.amtlicher_schluessel == adminUnit.SCHLNR});
+
+      let anschrift = "";
+      let email = "";
+      if (adminUnitData){
+        anschrift = adminUnitData.AMTSBEZ_BM + " " + adminUnitData.TITEL + " " + adminUnitData.BM_NACHNAME + ", " + 
+                    adminUnitData.STRASSE + " in " + adminUnitData.PLZ +" " + adminUnitData.ORT;
+        email = adminUnitData.E_MAIL;
+      }
+
       return (
         <>
           {adminUnitAtCoord.name} 
+          <p>{anschrift}</p>
+          <p>{email}</p>
         </>
       );
     }
@@ -73,8 +86,9 @@ export function QueryResultPanel() {
         <ListMainStreets />
         <h3>
           {" "}
-          Zuständige Behörde: <ShowAdminUnit />{" "}
+          Zuständige Behörde: {" "}
         </h3>
+        <ShowAdminUnit />
         TODO Mapping von Gemeinde/Stadt auf die zuständige Behörde (mit Adresse
         / E-Mail etc.)
         <h3>Schulen, die Tempo 30 ermöglichen könnten</h3>
