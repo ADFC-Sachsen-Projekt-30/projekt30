@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "prettier-check": "prettier --check src",
-    "prettier-fix": "prettier --check --write src"
+    "prettier-fix": "prettier --check --write src",
+    "ngrok": "node ../../scripts/ngrok-qrcode/index.mjs & ngrok http 5173 | cat"
   },
   "dependencies": {
     "@mantine/core": "^8.2.5",
