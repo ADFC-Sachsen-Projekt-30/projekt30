@@ -8,5 +8,17 @@ export default defineConfig({
   base: "projekt30/",
   plugins: [ 
     stringPlugin(),
-    preact()]
+    preact()], 
+  server: {
+    proxy: {
+      '/sachsen-schul-api': {
+        target: 'https://schuldatenbank.sachsen.de/api', 
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sachsen-schul-api/, ''),
+        headers: {
+          'Access-Control-Allow-origin': '*',
+        }
+      }
+    }
+  }
 });

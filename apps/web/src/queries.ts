@@ -326,7 +326,8 @@ export async function runSchoolQuery(point: LatLng, distance: number) {
     Returns schools (in Sachsen) around point at distance at most distance. 
     Note: Here distance is in kilometers. 
   */
-  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
+//  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
+  const queryString = "/sachsen-schul-api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"  
   const query = replaceCoordAndDistance( queryString, point, distance );
 
   console.log("Query for schools: ", query);
