@@ -29,12 +29,11 @@ const queryString = `
 out center;
 `;
 
-const queryStringSchools = `
-// Findet Schulen um die Koordinaten {{coord}} mit Abstand {{distance}}
+const queryStringKindergarten = `
+// Findet Kindergärten um die Koordinaten {{coord}} mit Abstand {{distance}}
 // und gibt das Zentrum des gefundenen Objekts zurück
 [out:json][timeout:10000];
-
-nwr[amenity=school](around:{{distance}},{{coord}});
+nwr[amenity=kindergarten](around:{{distance}},{{coord}});
 out center;
 `;
 
@@ -58,6 +57,7 @@ const queryStringAdminUnit = `
   relation(pivot.a)[boundary=administrative][admin_level={{ADMINUNITLEVEL}}];
  out tags center;
 `;
+
 
 const overpassApiQueryResultRuntype = z.object({
   version: z.number(),
@@ -111,6 +111,9 @@ const overpassApiQueryResultRuntype = z.object({
 });
 
 async function parseResponseToCoordinates(response: Response) {
+  /*
+    This function is deprecated
+  */
   const result = await response.json();
 
   const typedResult = overpassApiQueryResultRuntype.parse(result);
@@ -196,6 +199,9 @@ function overpassServer() {
   return "https://overpass.private.coffee/api/interpreter"}
 
 export async function runQuery(bbox: LatLngBounds) {
+  /*
+    This function is deprecated and has been replaced by queries for a single coordinate and a distance
+  */
   const bboxString = `${bbox.southWest.lat},${bbox.southWest.lng},${bbox.northEast.lat},${bbox.northEast.lng}`;
   const query = queryString.replaceAll("{{bbox}}", bboxString);
 
@@ -207,20 +213,37 @@ export async function runQuery(bbox: LatLngBounds) {
   return parseResponseToCoordinates(response);
 }
 
+function replaceCoordAndDistance(
+    baseQuery: string,
+    point: LatLng,
+    distance: number
+
+){ /* 
+    Replace placeholder {{coord}} by the coordinate 
+   string for parameter point and placeholder {{distance}} by 
+   parameter distance and return the query 
+  */
+
+   const pointString = `${point.lat},${point.lng}`;
+  return baseQuery
+    .replaceAll("{{coord}}", pointString)
+    .replaceAll("{{distance}}", distance.toString());
+
+
+}
+
+
 async function runCoordQuery(
   baseQuery: string,
   point: LatLng,
-  distance: number,
+  distance: number
 ) {
   /*
    Runs an Overpass-query baseQuery where placeholder {{coord}} is replaced by the coordinate 
    string for parameter point and placeholder {{distance}} is replaced by 
    parameter distance
   */
-  const pointString = `${point.lat},${point.lng}`;
-  const query = baseQuery
-    .replaceAll("{{coord}}", pointString)
-    .replaceAll("{{distance}}", distance.toString());
+  const query = replaceCoordAndDistance(baseQuery, point, distance);
 
   const response = await fetch(overpassServer(), {
     method: "POST",
@@ -230,14 +253,15 @@ async function runCoordQuery(
   return parseResponseToNamedObjectWithPosition(response);
 }
 
-export async function runSchoolQuery(point: LatLng, distance: number) {
+
+export async function runKindergartenQuery(point: LatLng, distance: number) {
   /*
-   Runs the query for Schools where placeholder {{coord}} is replaced by the coordinate 
+   Runs the query for kindergardens where placeholder {{coord}} is replaced by the coordinate 
    string for parameter point and placeholder {{distance}} is replaced by 
    parameter distance
   */
 
-  return runCoordQuery(queryStringSchools, point, distance);
+  return runCoordQuery(queryStringKindergarten, point, distance);
 }
 
 export async function runMainStreetQuery(point: LatLng) {
@@ -280,4 +304,49 @@ export async function runAdminUnitQuery(point: LatLng) {
 
 
   return null;
+}
+
+
+const schuldatenbankSachsenResultRuntype = z.object({
+  result: z.array(
+    z.object({
+      name: z.string(), 
+      institution_key: z.string(),
+      longitude: z.number(),
+      latitude: z.number()
+    } )
+  )
+});
+
+
+
+
+export async function runSchoolQuery(point: LatLng, distance: number) {
+  /*
+    Returns schools (in Sachsen) around point at distance at most distance. 
+    Note: Here distance is in kilometers. 
+  */
+  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
+  const query = replaceCoordAndDistance( queryString, point, distance );
+
+  console.log("Query for schools: ", query);
+
+  const response = await fetch(query);
+  const result = await response.json();
+  const typedResult = schuldatenbankSachsenResultRuntype.parse(result);
+
+  return typedResult.result.flatMap((e) => {
+    let position: LatLng;
+    position = {
+      lat: e.latitude,
+      lng: e.longitude,
+      };
+    
+    return {
+      name: e.name,
+      amtlicher_schluessel: e.institution_key,
+      position: position
+    };
+  });
+
 }

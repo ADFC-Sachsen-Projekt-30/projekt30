@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import {
   runSchoolQuery,
+  // runKindergartenQuery,
   runMainStreetQuery,
   runAdminUnitQuery,
 } from "./queries";
@@ -83,7 +84,9 @@ export const useStore = create<Store>()(
         console.log("Gefundener Kreis:", resultAdminUnitAtCoord);
         resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
         console.log("Gefundene Straßen:", resultMainStreetsAtCoord);
-        resultSchools = await runSchoolQuery(queryCoord, 150);
+        
+        // In overpass distances are in meter, but the School server takes distances in km. 
+        resultSchools = await runSchoolQuery(queryCoord, 0.3);
         console.log("Gefundene Schulen:", resultSchools);
       }
 
