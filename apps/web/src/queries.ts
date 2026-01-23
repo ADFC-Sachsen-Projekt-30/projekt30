@@ -58,7 +58,6 @@ const queryStringAdminUnit = `
  out tags center;
 `;
 
-
 const overpassApiQueryResultRuntype = z.object({
   version: z.number(),
   osm3s: z.unknown(),
@@ -102,7 +101,7 @@ const overpassApiQueryResultRuntype = z.object({
           z.object({
             name: z.optional(z.string()),
             official_name: z.optional(z.string()),
-            "de:amtlicher_gemeindeschluessel": z.optional(z.string())
+            "de:amtlicher_gemeindeschluessel": z.optional(z.string()),
           }),
         ),
       }),
@@ -123,7 +122,7 @@ async function parseResponseToCoordinates(response: Response) {
       return {
         lat: e.center.lat,
         lng: e.center.lon,
-        name: e.tags?.name
+        name: e.tags?.name,
       };
     }
 
@@ -133,10 +132,10 @@ async function parseResponseToCoordinates(response: Response) {
         lng: e.center.lon,
         name: e.tags?.name,
         official_name: e.tags?.official_name,
-        amtlicher_gemeindeschluessel: e.tags?.["de:amtlicher_gemeindeschluessel"]
+        amtlicher_gemeindeschluessel:
+          e.tags?.["de:amtlicher_gemeindeschluessel"],
       };
     }
-
 
     return {
       lat: e.lat,
@@ -174,14 +173,13 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
     if (e.tags && e.tags.name) {
       name = e.tags.name;
 
-      if (e.type == "relation"){
+      if (e.type == "relation") {
         if (e.tags.official_name) {
           official_name = e.tags.official_name;
         }
         if (e.tags["de:amtlicher_gemeindeschluessel"]) {
           amtlicher_schluessel = e.tags["de:amtlicher_gemeindeschluessel"];
         }
-
       }
     }
 
@@ -194,9 +192,10 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
   });
 }
 
-function overpassServer() { 
-  // return "https://overpass-api.de/api/interpreter"  // 504 Gateway tiemout to often 
-  return "https://overpass.private.coffee/api/interpreter"}
+function overpassServer() {
+  // return "https://overpass-api.de/api/interpreter"  // 504 Gateway tiemout to often
+  return "https://overpass.private.coffee/api/interpreter";
+}
 
 export async function runQuery(bbox: LatLngBounds) {
   /*
@@ -214,29 +213,26 @@ export async function runQuery(bbox: LatLngBounds) {
 }
 
 function replaceCoordAndDistance(
-    baseQuery: string,
-    point: LatLng,
-    distance: number
-
-){ /* 
+  baseQuery: string,
+  point: LatLng,
+  distance: number,
+) {
+  /* 
     Replace placeholder {{coord}} by the coordinate 
    string for parameter point and placeholder {{distance}} by 
    parameter distance and return the query 
   */
 
-   const pointString = `${point.lat},${point.lng}`;
+  const pointString = `${point.lat},${point.lng}`;
   return baseQuery
     .replaceAll("{{coord}}", pointString)
     .replaceAll("{{distance}}", distance.toString());
-
-
 }
-
 
 async function runCoordQuery(
   baseQuery: string,
   point: LatLng,
-  distance: number
+  distance: number,
 ) {
   /*
    Runs an Overpass-query baseQuery where placeholder {{coord}} is replaced by the coordinate 
@@ -252,7 +248,6 @@ async function runCoordQuery(
 
   return parseResponseToNamedObjectWithPosition(response);
 }
-
 
 export async function runKindergartenQuery(point: LatLng, distance: number) {
   /*
@@ -281,8 +276,6 @@ export async function runAdminUnitQuery(point: LatLng) {
   */
 
   let query = queryStringAdminUnit.replaceAll("{{ADMINUNITLEVEL}}", "8");
-    
-  
 
   console.log("Gemeindequery: ", query);
   // "distance" 0.0 is unused and could be eliminated in a refactoring
@@ -292,7 +285,6 @@ export async function runAdminUnitQuery(point: LatLng) {
     return adminUnits.at(0);
   }
 
-  
   query = queryStringAdminUnit.replaceAll("{{ADMINUNITLEVEL}}", "6");
 
   console.log("Stadtquery: ", query);
@@ -302,33 +294,29 @@ export async function runAdminUnitQuery(point: LatLng) {
     return adminUnits.at(0);
   }
 
-
   return null;
 }
-
 
 const schuldatenbankSachsenResultRuntype = z.object({
   result: z.array(
     z.object({
-      name: z.string(), 
+      name: z.string(),
       institution_key: z.string(),
       longitude: z.number(),
-      latitude: z.number()
-    } )
-  )
+      latitude: z.number(),
+    }),
+  ),
 });
-
-
-
 
 export async function runSchoolQuery(point: LatLng, distance: number) {
   /*
     Returns schools (in Sachsen) around point at distance at most distance. 
     Note: Here distance is in kilometers. 
   */
-//  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
-  const queryString = "/sachsen-schul-api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"  
-  const query = replaceCoordAndDistance( queryString, point, distance );
+  //  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
+  const queryString =
+    "/sachsen-schul-api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}";
+  const query = replaceCoordAndDistance(queryString, point, distance);
 
   console.log("Query for schools: ", query);
 
@@ -341,13 +329,12 @@ export async function runSchoolQuery(point: LatLng, distance: number) {
     position = {
       lat: e.latitude,
       lng: e.longitude,
-      };
-    
+    };
+
     return {
       name: e.name,
       amtlicher_schluessel: e.institution_key,
-      position: position
+      position: position,
     };
   });
-
 }

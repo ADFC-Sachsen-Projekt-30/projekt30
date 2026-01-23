@@ -6,8 +6,13 @@ import {
   runMainStreetQuery,
   runAdminUnitQuery,
 } from "./queries";
-import {parseCsvAdminUnitsSaxony} from "./AdminUnitAddressSaxony";
-import type { LatLng, QueryResult, NamedObjectWithPosition, AdminUnitData } from "./types";
+import { parseCsvAdminUnitsSaxony } from "./AdminUnitAddressSaxony";
+import type {
+  LatLng,
+  QueryResult,
+  NamedObjectWithPosition,
+  AdminUnitData,
+} from "./types";
 
 interface Store {
   // current coordinate for coordinate based requests
@@ -28,7 +33,7 @@ interface Store {
   fetchQuery(): Promise<void>;
 
   // List of contact data for each Saxonian Gemeinde / kreisfreie Stadt
-  adminUnitsSaxony : AdminUnitData[] | null;
+  adminUnitsSaxony: AdminUnitData[] | null;
   setAdminUnitsSaxony(adminUnitsSaxony: AdminUnitData[]): void;
 }
 
@@ -52,21 +57,23 @@ export const useStore = create<Store>()(
     queryResult: null,
     setQueryResult: (queryResult) =>
       set((state) => ({ ...state, queryResult })),
-    
+
     fetchQuery: async () => {
       const { queryCoord, adminUnitsSaxony } = get();
 
       let parsedAdminUnitsSaxony = adminUnitsSaxony;
-      if (! adminUnitsSaxony) {
-        try{ 
-          parsedAdminUnitsSaxony =  await parseCsvAdminUnitsSaxony();
+      if (!adminUnitsSaxony) {
+        try {
+          parsedAdminUnitsSaxony = await parseCsvAdminUnitsSaxony();
           console.log(parsedAdminUnitsSaxony);
         } catch (error) {
-          console.error("Fehler beim Laden der sächsischen Gemeinde-Daten:", error);
+          console.error(
+            "Fehler beim Laden der sächsischen Gemeinde-Daten:",
+            error,
+          );
         }
-        
       }
-      //TODO : Do a get on the adminUnitsSaxony  if it is null, then call papa parse and set the result via 
+      //TODO : Do a get on the adminUnitsSaxony  if it is null, then call papa parse and set the result via
       //setADminUnitsAtCoord()
 
       // Debug alert(queryCoord?.lat.toString() + " " + queryCoord?.lng.toString());
@@ -84,8 +91,8 @@ export const useStore = create<Store>()(
         console.log("Gefundener Kreis:", resultAdminUnitAtCoord);
         resultMainStreetsAtCoord = await runMainStreetQuery(queryCoord);
         console.log("Gefundene Straßen:", resultMainStreetsAtCoord);
-        
-        // In overpass distances are in meter, but the School server takes distances in km. 
+
+        // In overpass distances are in meter, but the School server takes distances in km.
         resultSchools = await runSchoolQuery(queryCoord, 0.3);
         console.log("Gefundene Schulen:", resultSchools);
       }

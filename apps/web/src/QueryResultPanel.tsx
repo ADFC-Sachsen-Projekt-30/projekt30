@@ -3,8 +3,13 @@ import { useStore } from "./store";
 import type { NamedObjectWithPosition } from "./types";
 
 export function QueryResultPanel() {
-  const { queryCoord, queryResult, mainStreetsAtCoord, adminUnitAtCoord, adminUnitsSaxony } =
-    useStore();
+  const {
+    queryCoord,
+    queryResult,
+    mainStreetsAtCoord,
+    adminUnitAtCoord,
+    adminUnitsSaxony,
+  } = useStore();
 
   function ListMainStreets() {
     /* Create a  list entry for each Street we found*/
@@ -26,20 +31,31 @@ export function QueryResultPanel() {
   function ShowAdminUnit() {
     /* Shows the administrive unit found at the coordinate*/
     if (adminUnitAtCoord) {
-      
-      const adminUnitData= adminUnitsSaxony?.find( adminUnit => {return adminUnitAtCoord.amtlicher_schluessel == adminUnit.SCHLNR});
+      const adminUnitData = adminUnitsSaxony?.find((adminUnit) => {
+        return adminUnitAtCoord.amtlicher_schluessel == adminUnit.SCHLNR;
+      });
 
       let anschrift = "";
       let email = "";
-      if (adminUnitData){
-        anschrift = adminUnitData.AMTSBEZ_BM + " " + adminUnitData.TITEL + " " + adminUnitData.BM_NACHNAME + ", " + 
-                    adminUnitData.STRASSE + " in " + adminUnitData.PLZ +" " + adminUnitData.ORT;
+      if (adminUnitData) {
+        anschrift =
+          adminUnitData.AMTSBEZ_BM +
+          " " +
+          adminUnitData.TITEL +
+          " " +
+          adminUnitData.BM_NACHNAME +
+          ", " +
+          adminUnitData.STRASSE +
+          " in " +
+          adminUnitData.PLZ +
+          " " +
+          adminUnitData.ORT;
         email = adminUnitData.E_MAIL;
       }
 
       return (
         <>
-          {adminUnitAtCoord.name} 
+          {adminUnitAtCoord.name}
           <p>{anschrift}</p>
           <p>{email}</p>
         </>
@@ -84,10 +100,7 @@ export function QueryResultPanel() {
         TODO Auswahl bei mehreren Straßen TODO Zusammenführen von Straßen, die
         den gleichen Namen haben (?)
         <ListMainStreets />
-        <h3>
-          {" "}
-          Zuständige Behörde: {" "}
-        </h3>
+        <h3> Zuständige Behörde: </h3>
         <ShowAdminUnit />
         TODO Mapping von Gemeinde/Stadt auf die zuständige Behörde (mit Adresse
         / E-Mail etc.)
