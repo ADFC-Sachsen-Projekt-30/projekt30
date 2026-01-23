@@ -3,7 +3,7 @@ import { IconCircleFilled } from "@tabler/icons-react";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
-import { BottomCollapse } from "./BottomCollapse";
+import { MapBottomSheet } from "./MapBottomSheet";
 import { useStore } from "./store";
 
 export function Map() {
@@ -154,7 +154,7 @@ export function Map() {
   };
 
   // min height of the bottom collapse
-  const bottomHeight = "2rem";
+  const bottomHeight = "42px";
 
   return (
     <div>
@@ -176,7 +176,7 @@ export function Map() {
         onClick={getUserLocation}
         style={{
           position: "absolute",
-          bottom: `calc(${bottomHeight} + 1rem)`, // position above bottom collapse
+          bottom: `calc(${bottomHeight})`, // position above bottom sheet
           right: "1rem",
           zIndex: "calc(var(--mantine-z-index-app) + 10)",
           boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
@@ -195,16 +195,7 @@ export function Map() {
           height: bottomHeight,
         }}
       >
-        <BottomCollapse
-          style={{
-            zIndex: "calc(var(--mantine-z-index-app) + 20)",
-            position: "absolute",
-            bottom: 0,
-            width: "100%",
-            backgroundColor: "var(--mantine-color-body)",
-            borderRadius: "1rem",
-          }}
-        />
+        <MapBottomSheet />
       </div>
     </div>
   );
