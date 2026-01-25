@@ -9,7 +9,7 @@ import { Sheet, type SheetRef } from "react-modal-sheet";
 import { QueryResultPanel } from "./QueryResultPanel";
 
 const snapPoints = [0, 42, 130, 0.5, -100, 1];
-const initialSnap = 1;
+const initialSnap = 2;
 
 export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
   const sheetRef = useRef<SheetRef>(null);
@@ -32,6 +32,7 @@ export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
       onSnap={setSnapPoint}
       ref={sheetRef}
       snapPoints={snapPoints}
+      style={{ zIndex: "calc(var(--mantine-z-index-app) + 50" }}
     >
       <Sheet.Container
         style={{

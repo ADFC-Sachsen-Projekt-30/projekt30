@@ -14,11 +14,7 @@ export function AppShell() {
         collapsed: { mobile: !opened, desktop: !opened },
       }}
       padding={0}
-      zIndex={
-        // let app shell (esp the navbar) hover above the leaflet map (base
-        // zIndex 400, controls have 1000)
-        2000
-      }
+      zIndex={"var(--mantine-z-index-modal)"}
     >
       <Burger
         opened={opened}
@@ -29,7 +25,8 @@ export function AppShell() {
           position: "absolute",
           top: "0rem",
           left: "0rem",
-          zIndex: "2010", // burger must hover over map
+          // burger must hover over map and navbar
+          zIndex: "2010",
           backgroundColor: "var(--mantine-color-body)",
           margin: "0.5rem",
           borderColor: "var(--mantine-color-default-border)",
