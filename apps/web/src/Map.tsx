@@ -4,6 +4,7 @@ import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MapBottomSheet } from "./MapBottomSheet";
+import { createMapMarkerIcon } from "./mapMarkers";
 import { useStore } from "./store";
 
 export function Map() {
@@ -61,6 +62,7 @@ export function Map() {
     };
   }, [ref, setQueryCoord]);
 
+  // school markers
   useEffect(() => {
     if (!map) {
       return;
@@ -70,18 +72,11 @@ export function Map() {
       return;
     }
 
-    const greenCircleIcon = new L.DivIcon({
-      className: "green-circle-marker",
-      html: '<div style="width: 8px; height: 8px; background-color: green; border-radius: 50%; border: none; opacity: 0.6"></div>',
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
+    const markersOfSchools = queryResult.pointsOfSchools.map((school) => {
+      return new L.Marker([school.position.lat, school.position.lng], {
+        icon: createMapMarkerIcon(),
+      }).addTo(map);
     });
-
-    const markersOfSchools = queryResult.pointsOfSchools.map((school) =>
-      new L.Marker([school.position.lat, school.position.lng], {
-        icon: greenCircleIcon,
-      }).addTo(map),
-    );
 
     return () => {
       markersOfSchools.forEach((m) => m.remove());
