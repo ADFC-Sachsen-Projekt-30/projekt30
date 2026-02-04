@@ -212,17 +212,16 @@ export async function runQuery(bbox: LatLngBounds) {
   return parseResponseToCoordinates(response);
 }
 
+/**
+ * Replace placeholder {{coord}} by the coordinate
+ * string for parameter point and placeholder {{distance}} by
+ * parameter distance and return the query
+ */
 function replaceCoordAndDistance(
   baseQuery: string,
   point: LatLng,
   distance: number,
 ) {
-  /* 
-    Replace placeholder {{coord}} by the coordinate 
-   string for parameter point and placeholder {{distance}} by 
-   parameter distance and return the query 
-  */
-
   const pointString = `${point.lat},${point.lng}`;
   return baseQuery
     .replaceAll("{{coord}}", pointString)
@@ -308,11 +307,12 @@ const schuldatenbankSachsenResultRuntype = z.object({
   ),
 });
 
+/**
+ * Returns schools (in Sachsen) around point at distance at most distance.
+ *
+ * Note: Here distance is in kilometers.
+ */
 export async function runSchoolQuery(point: LatLng, distance: number) {
-  /*
-    Returns schools (in Sachsen) around point at distance at most distance. 
-    Note: Here distance is in kilometers. 
-  */
   //  const queryString = "https://schuldatenbank.sachsen.de/api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}"
   const queryString =
     "/sachsen-schul-api/v1/schools/map?school_category_key=10&perimeter={{distance}}&location={{coord}}";
