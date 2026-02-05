@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MapBottomSheet } from "./MapBottomSheet";
 import { createMapMarkerIcon } from "./mapMarkers";
-import { schoolsIndex } from "./spatial-index";
+import { schoolsIndex, type SchoolPoint } from "./spatial-index";
 import { useStore } from "./store";
 
 export function Map() {
@@ -14,7 +14,7 @@ export function Map() {
   const [map, setMap] = useState<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [viewportSchools, setViewportSchools] = useState<any[]>([]);
+  const [viewportSchools, setViewportSchools] = useState<SchoolPoint[]>([]);
 
   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
@@ -66,15 +66,11 @@ export function Map() {
             })
           : [];
 
-      setViewportSchools(
-        schoolsInViewport.map((school) => ({
-          name: school.name,
-          position: { lat: school.lat, lng: school.lng },
-        })),
-      );
+      setViewportSchools(schoolsInViewport);
     }
 
     map.on("moveend", handleMoveEnd);
+
     // Initial trigger
     handleMoveEnd();
 
@@ -99,8 +95,9 @@ export function Map() {
     }
 
     const markersOfSchools = viewportSchools.map((school) => {
-      return new L.Marker([school.position.lat, school.position.lng], {
+      return new L.Marker([school.lat, school.lng], {
         icon: createMapMarkerIcon(),
+        title: school.name,
       }).addTo(map);
     });
 

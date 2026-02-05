@@ -1,11 +1,15 @@
 import type { LatLngBounds } from "./types";
-import { schools } from "./data/schools";
+import { schools, type School } from "./data/schools";
 
-interface SchoolPoint {
+export interface SchoolPoint {
+  // index props
   id: number;
   name: string;
   lat: number;
   lng: number;
+
+  // metadata
+  building: School["buildings"][number];
 }
 
 // ad hoc spatial index generated with deepseek + codex-cli,
@@ -35,6 +39,7 @@ class SpatialGridIndex {
             name: school.name,
             lat: building.latitude,
             lng: building.longitude,
+            building,
           });
         }
       });
