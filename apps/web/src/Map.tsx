@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MapBottomSheet } from "./MapBottomSheet";
 import { createMapMarkerIcon } from "./mapMarkers";
-import { schoolsIndex, type SchoolPoint } from "./spatial-index";
+import { schoolsIndex, type SchoolPoint } from "./school-index";
 import { useStore } from "./store";
 
 export function Map() {

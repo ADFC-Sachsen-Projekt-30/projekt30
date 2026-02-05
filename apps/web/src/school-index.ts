@@ -16,7 +16,7 @@ export interface SchoolPoint {
 // works fine and ist just a few lines of simple code
 // if we need more points here maybe use sth. more sophisticated like
 // geokdbush
-class SpatialGridIndex {
+class SchoolGridIndex {
   private grid: Map<string, SchoolPoint[]> = new Map();
   private cellSize: number;
 
@@ -89,5 +89,5 @@ class SpatialGridIndex {
   }
 }
 
-export const schoolsIndex = new SpatialGridIndex();
+export const schoolsIndex = new SchoolGridIndex();
 schoolsIndex.build(schools);
