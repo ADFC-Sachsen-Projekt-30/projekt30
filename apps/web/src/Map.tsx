@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MapBottomSheet } from "./MapBottomSheet";
 import { createMapMarkerIcon } from "./mapMarkers";
+import { schoolsIndex } from "./spatial-index";
 import { useStore } from "./store";
 
 export function Map() {
@@ -13,6 +14,7 @@ export function Map() {
   const [map, setMap] = useState<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [viewportSchools, setViewportSchools] = useState<any[]>([]);
 
   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
@@ -48,6 +50,34 @@ export function Map() {
 
     map.on("click", handleClick);
 
+    // Add viewport change listener
+    function handleMoveEnd() {
+      const bounds = map.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      const boundsSize = map.distance(sw, ne);
+
+      // limit the amount of visible markers to not overload the map
+      const schoolsInViewport =
+        boundsSize < 40_000
+          ? schoolsIndex.queryBounds({
+              southWest: { lat: sw.lat, lng: sw.lng },
+              northEast: { lat: ne.lat, lng: ne.lng },
+            })
+          : [];
+
+      setViewportSchools(
+        schoolsInViewport.map((school) => ({
+          name: school.name,
+          position: { lat: school.lat, lng: school.lng },
+        })),
+      );
+    }
+
+    map.on("moveend", handleMoveEnd);
+    // Initial trigger
+    handleMoveEnd();
+
     new L.TileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution:
@@ -62,13 +92,26 @@ export function Map() {
     };
   }, [ref, setQueryCoord]);
 
-  // school markers
+  // school markers from spatial index
   useEffect(() => {
     if (!map) {
       return;
     }
 
-    if (!queryResult) {
+    const markersOfSchools = viewportSchools.map((school) => {
+      return new L.Marker([school.position.lat, school.position.lng], {
+        icon: createMapMarkerIcon(),
+      }).addTo(map);
+    });
+
+    return () => {
+      markersOfSchools.forEach((m) => m.remove());
+    };
+  }, [map, viewportSchools]);
+
+  // school markers from query result (external API)
+  useEffect(() => {
+    if (!map || !queryResult) {
       return;
     }
 
