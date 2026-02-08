@@ -10,7 +10,7 @@ import { useStore } from "./store";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setQueryCoord, queryResult, mainStreetsAtCoord } = useStore();
+  const { setQueryCoord, setSelectedSchool } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -95,33 +95,23 @@ export function Map() {
     }
 
     const markersOfSchools = viewportSchools.map((school) => {
-      return new L.Marker([school.lat, school.lng], {
+      const marker = new L.Marker([school.lat, school.lng], {
         icon: createMapMarkerIcon(),
         title: school.name,
       }).addTo(map);
+
+      // Add click handler to select school
+      marker.on("click", () => {
+        setSelectedSchool(school);
+      });
+
+      return marker;
     });
 
     return () => {
       markersOfSchools.forEach((m) => m.remove());
     };
-  }, [map, viewportSchools]);
-
-  // school markers from query result (external API)
-  useEffect(() => {
-    if (!map || !queryResult) {
-      return;
-    }
-
-    const markersOfSchools = queryResult.pointsOfSchools.map((school) => {
-      return new L.Marker([school.position.lat, school.position.lng], {
-        icon: createMapMarkerIcon(),
-      }).addTo(map);
-    });
-
-    return () => {
-      markersOfSchools.forEach((m) => m.remove());
-    };
-  }, [map, queryResult, mainStreetsAtCoord]);
+  }, [map, viewportSchools, setSelectedSchool]);
 
   // user location marker
   useEffect(() => {

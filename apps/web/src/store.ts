@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { runMainStreetQuery } from "./queries";
+import type { SchoolPoint } from "./school-index";
 import type { LatLng, NamedObjectWithPosition, QueryResult } from "./types";
 
 interface Store {
@@ -13,6 +14,10 @@ interface Store {
 
   // overpass api query result for schools near query coordinate
   queryResult: QueryResult | null;
+
+  // selected school marker
+  selectedSchool: SchoolPoint | null;
+  setSelectedSchool: (school: SchoolPoint | null) => void;
   fetchQuery(): Promise<void>;
 }
 
@@ -24,6 +29,10 @@ export const useStore = create<Store>()(
     },
     mainStreetsAtCoord: null,
     queryResult: null,
+    selectedSchool: null,
+    setSelectedSchool: (selectedSchool) => {
+      set((state) => ({ ...state, selectedSchool }));
+    },
     fetchQuery: async () => {
       const { queryCoord } = get();
 
