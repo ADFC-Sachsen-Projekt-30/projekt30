@@ -192,9 +192,26 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
   });
 }
 
-function overpassServer() {
+// Overpass API servers
+const OVERPASS_SERVERS = [
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
+];
+
+// Track which server index is currently preferred
+let currentServerIndex = 0;
+
+function overpassServer(index?: number) {
   // return "https://overpass-api.de/api/interpreter"  // 504 Gateway tiemout to often
-  return "https://overpass.private.coffee/api/interpreter";
+  if (index !== undefined) {
+    return OVERPASS_SERVERS[index % OVERPASS_SERVERS.length];
+  }
+  return OVERPASS_SERVERS[currentServerIndex];
+}
+
+function nextServerIndex() {
+  currentServerIndex = (currentServerIndex + 1) % OVERPASS_SERVERS.length;
+  return currentServerIndex;
 }
 
 export async function runQuery(bbox: LatLngBounds) {
@@ -237,17 +254,45 @@ async function runCoordQuery(
   /*
    Runs an Overpass-query baseQuery where placeholder {{coord}} is replaced by the coordinate 
    string for parameter point and placeholder {{distance}} is replaced by 
-   parameter distance
+   parameter distance.
+   
+   This function is robust and will retry with an alternative server if JSON parsing fails.
+   It tracks which server is working and sticks to it until both servers fail to return valid JSON.
   */
   const query = replaceCoordAndDistance(baseQuery, point, distance);
 
-  const response = await fetch(overpassServer(), {
-    method: "POST",
-    body: "data=" + encodeURIComponent(query),
-  });
+  // Try the current preferred server first
+  let lastError: Error | null = null;
 
-  return parseResponseToNamedObjectWithPosition(response);
+  for (let attempt = 0; attempt < OVERPASS_SERVERS.length; attempt++) {
+    try {
+      const serverUrl = overpassServer();
+      const response = await fetch(serverUrl, {
+        method: "POST",
+        body: "data=" + encodeURIComponent(query),
+      });
+
+      const result = await response.json();
+      
+      // If JSON parsing succeeded, we're done
+      return parseResponseToNamedObjectWithPosition(
+        new Response(JSON.stringify(result))
+      );
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // JSON parsing failed, try the next server
+      nextServerIndex();
+    }
+  }
+
+  // Both servers failed
+  if (lastError) {
+    throw lastError;
+  }
+  
+  throw new Error("All Overpass servers failed to return valid JSON");
 }
+
 
 export async function runKindergartenQuery(point: LatLng, distance: number) {
   /*
