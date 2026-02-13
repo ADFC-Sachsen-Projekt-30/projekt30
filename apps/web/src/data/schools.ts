@@ -21,4 +21,5 @@ const schoolsRuntype = z.array(
   }),
 );
 
+export type School = z.TypeOf<typeof schoolsRuntype>[number];
 export const schools = schoolsRuntype.parse(schoolsJson);

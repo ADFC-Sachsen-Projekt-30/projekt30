@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { Sheet, type SheetRef } from "react-modal-sheet";
-import { QueryResultPanel } from "./QueryResultPanel";
+import { MapBottomSheetBody } from "./MapBottomSheetBody";
 
 const snapPoints = [0, 42, 130, 0.5, -100, 1];
 const initialSnap = 2;
@@ -41,7 +41,7 @@ export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
       >
         <Sheet.Header />
         <Sheet.Content>
-          <QueryResultPanel />
+          <MapBottomSheetBody />
         </Sheet.Content>
       </Sheet.Container>
     </Sheet>
