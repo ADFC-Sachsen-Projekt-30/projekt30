@@ -9,7 +9,12 @@ import { useStore } from "./store";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setQueryCoord, queryResult, mainStreetsAtCoord } = useStore();
+  const {
+    setQueryCoord,
+    setSelectedSchool,
+    viewportSchools,
+    queryViewportSchools,
+  } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -48,6 +53,27 @@ export function Map() {
 
     map.on("click", handleClick);
 
+    // Add viewport change listener
+    function handleMoveEnd() {
+      const bounds = map.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      const boundsSize = map.distance(sw, ne);
+
+      queryViewportSchools(
+        {
+          southWest: { lat: sw.lat, lng: sw.lng },
+          northEast: { lat: ne.lat, lng: ne.lng },
+        },
+        boundsSize,
+      );
+    }
+
+    map.on("moveend", handleMoveEnd);
+
+    // Initial trigger
+    handleMoveEnd();
+
     new L.TileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution:
@@ -60,28 +86,32 @@ export function Map() {
       setMap(null);
       map.remove();
     };
-  }, [ref, setQueryCoord]);
+  }, [ref, setQueryCoord, queryViewportSchools]);
 
-  // school markers
+  // school markers from spatial index
   useEffect(() => {
     if (!map) {
       return;
     }
 
-    if (!queryResult) {
-      return;
-    }
-
-    const markersOfSchools = queryResult.pointsOfSchools.map((school) => {
-      return new L.Marker([school.position.lat, school.position.lng], {
+    const markersOfSchools = viewportSchools.map((school) => {
+      const marker = new L.Marker([school.lat, school.lng], {
         icon: createMapMarkerIcon(),
+        title: school.name,
       }).addTo(map);
+
+      // Add click handler to select school
+      marker.on("click", () => {
+        setSelectedSchool(school);
+      });
+
+      return marker;
     });
 
     return () => {
       markersOfSchools.forEach((m) => m.remove());
     };
-  }, [map, queryResult, mainStreetsAtCoord]);
+  }, [map, viewportSchools, setSelectedSchool]);
 
   // user location marker
   useEffect(() => {
