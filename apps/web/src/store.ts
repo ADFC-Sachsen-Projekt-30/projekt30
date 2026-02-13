@@ -1,8 +1,13 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { runMainStreetQuery } from "./queries";
-import type { SchoolPoint } from "./school-index";
-import type { LatLng, NamedObjectWithPosition, QueryResult } from "./types";
+import { schoolsIndex, type SchoolPoint } from "./school-index";
+import type {
+  LatLng,
+  LatLngBounds,
+  NamedObjectWithPosition,
+  QueryResult,
+} from "./types";
 
 interface Store {
   // current coordinate for coordinate based requests
@@ -18,6 +23,11 @@ interface Store {
   // selected school marker
   selectedSchool: SchoolPoint | null;
   setSelectedSchool: (school: SchoolPoint | null) => void;
+
+  // schools in current map viewport
+  viewportSchools: SchoolPoint[];
+  queryViewportSchools(bounds: LatLngBounds, boundsSize: number): void;
+
   fetchQuery(): Promise<void>;
 }
 
@@ -32,6 +42,14 @@ export const useStore = create<Store>()(
     selectedSchool: null,
     setSelectedSchool: (selectedSchool) => {
       set((state) => ({ ...state, selectedSchool }));
+    },
+    viewportSchools: [],
+    queryViewportSchools: (bounds, boundsSize) => {
+      // limit the amount of visible markers to not overload the map
+      const schoolsInViewport =
+        boundsSize < 40_000 ? schoolsIndex.queryBounds(bounds) : [];
+
+      set((state) => ({ ...state, viewportSchools: schoolsInViewport }));
     },
     fetchQuery: async () => {
       const { queryCoord } = get();

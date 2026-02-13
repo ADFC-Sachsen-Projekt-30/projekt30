@@ -5,16 +5,19 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MapBottomSheet } from "./MapBottomSheet";
 import { createMapMarkerIcon } from "./mapMarkers";
-import { schoolsIndex, type SchoolPoint } from "./school-index";
 import { useStore } from "./store";
 
 export function Map() {
   const ref = useRef<HTMLDivElement>(null);
-  const { setQueryCoord, setSelectedSchool } = useStore();
+  const {
+    setQueryCoord,
+    setSelectedSchool,
+    viewportSchools,
+    queryViewportSchools,
+  } = useStore();
   const [map, setMap] = useState<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [viewportSchools, setViewportSchools] = useState<SchoolPoint[]>([]);
 
   // Setup leaflet 2.0 (class based api) manually.
   // Tried using react-leaflet but that does not work with the current preact
@@ -57,16 +60,13 @@ export function Map() {
       const ne = bounds.getNorthEast();
       const boundsSize = map.distance(sw, ne);
 
-      // limit the amount of visible markers to not overload the map
-      const schoolsInViewport =
-        boundsSize < 40_000
-          ? schoolsIndex.queryBounds({
-              southWest: { lat: sw.lat, lng: sw.lng },
-              northEast: { lat: ne.lat, lng: ne.lng },
-            })
-          : [];
-
-      setViewportSchools(schoolsInViewport);
+      queryViewportSchools(
+        {
+          southWest: { lat: sw.lat, lng: sw.lng },
+          northEast: { lat: ne.lat, lng: ne.lng },
+        },
+        boundsSize,
+      );
     }
 
     map.on("moveend", handleMoveEnd);
@@ -86,7 +86,7 @@ export function Map() {
       setMap(null);
       map.remove();
     };
-  }, [ref, setQueryCoord]);
+  }, [ref, setQueryCoord, queryViewportSchools]);
 
   // school markers from spatial index
   useEffect(() => {
