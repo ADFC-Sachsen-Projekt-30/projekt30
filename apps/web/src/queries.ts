@@ -266,6 +266,8 @@ async function runCoordQuery(
   for (let attempt = 0; attempt < OVERPASS_SERVERS.length; attempt++) {
     try {
       const serverUrl = overpassServer();
+
+      console.log(`Running query on server: ${serverUrl} with query: ${query}`);
       const response = await fetch(serverUrl, {
         method: "POST",
         body: "data=" + encodeURIComponent(query),
@@ -280,6 +282,7 @@ async function runCoordQuery(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       // JSON parsing failed, try the next server
+      console.log("Error parsing JSON from server, trying next server: ", lastError);
       nextServerIndex();
     }
   }
