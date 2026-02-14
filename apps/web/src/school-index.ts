@@ -1,5 +1,6 @@
 import type { LatLngBounds } from "./types";
 import { schools, type School } from "./data/schools";
+import {runOSMSchoolQuery} from "./queries";
 
 export interface SchoolPoint {
   // index props
@@ -91,3 +92,26 @@ class SchoolGridIndex {
 
 export const schoolsIndex = new SchoolGridIndex();
 schoolsIndex.build(schools);
+
+
+schools.forEach((school) => {
+  school.buildings.forEach(async (building) => {
+    if (building.relocated) {
+   //   console.warn(
+   //     `School ${school.name} has a relocated building at (${building.latitude}, ${building.longitude}) and is not included in the index.`,
+   //   );
+    }
+    else {
+      //console.log( `School ${school.name} has building at (${building.latitude}, ${building.longitude})`);
+      const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+      await sleep(3000); // avoid spamming the OSM API too much, we have 100+ schools with multiple buildings each
+      const osmSchools = await runOSMSchoolQuery({ lat: building.latitude, lng: building.longitude }, 30);
+      if (osmSchools.length === 0) {
+        console.warn(
+          `No OSM school found near (${building.latitude}, ${building.longitude}) for school ${school.name}.`,
+        );
+      }
+    }
+  }
+,);});

@@ -296,6 +296,24 @@ async function runCoordQuery(
 }
 
 
+const queryStringOSMSchool = `
+[out:json][timeout:10000];
+nwr[amenity=school](around:{{distance}},{{coord}});
+out center;
+`;
+
+export async function runOSMSchoolQuery(point: LatLng, distance: number) {
+  /*
+   Runs the query for schools where placeholder {{coord}} is replaced by the coordinate 
+   string for parameter point and placeholder {{distance}} is replaced by 
+   parameter distance
+  */
+
+  return runCoordQuery(queryStringOSMSchool, point, distance);
+}
+
+
+
 export async function runKindergartenQuery(point: LatLng, distance: number) {
   /*
    Runs the query for kindergardens where placeholder {{coord}} is replaced by the coordinate 
