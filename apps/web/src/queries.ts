@@ -289,10 +289,11 @@ async function runCoordQuery(
 
   // Both servers failed
   if (lastError) {
-    throw lastError;
+    //throw lastError;
+    console.error(" Alle Overpassabfragen sind gescheitert")
   }
   
-  throw new Error("All Overpass servers failed to return valid JSON");
+  //throw new Error("All Overpass servers failed to return valid JSON");
 }
 
 

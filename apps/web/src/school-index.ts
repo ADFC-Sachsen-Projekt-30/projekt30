@@ -106,7 +106,7 @@ for (const school of schools) {
     else {
       //console.log( `School ${school.name} has building at (${building.latitude}, ${building.longitude})`);
       
-      await sleep(1000); // avoid spamming the OSM API too much, we have 100+ schools with multiple buildings each
+      await sleep(2000); // avoid spamming the OSM API too much, we have 100+ schools with multiple buildings each
       const osmSchools = await runOSMSchoolQuery({ lat: building.latitude, lng: building.longitude }, 150);
       if (osmSchools.length === 0) {
         console.warn(
