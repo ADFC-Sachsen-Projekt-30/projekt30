@@ -94,8 +94,10 @@ export const schoolsIndex = new SchoolGridIndex();
 schoolsIndex.build(schools);
 
 
-schools.forEach((school) => {
-  school.buildings.forEach(async (building) => {
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+for (const school of schools) {
+  for (const building of school.buildings) {
     if (building.relocated) {
    //   console.warn(
    //     `School ${school.name} has a relocated building at (${building.latitude}, ${building.longitude}) and is not included in the index.`,
@@ -103,10 +105,9 @@ schools.forEach((school) => {
     }
     else {
       //console.log( `School ${school.name} has building at (${building.latitude}, ${building.longitude})`);
-      const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
-      await sleep(3000); // avoid spamming the OSM API too much, we have 100+ schools with multiple buildings each
-      const osmSchools = await runOSMSchoolQuery({ lat: building.latitude, lng: building.longitude }, 30);
+      
+      await sleep(1000); // avoid spamming the OSM API too much, we have 100+ schools with multiple buildings each
+      const osmSchools = await runOSMSchoolQuery({ lat: building.latitude, lng: building.longitude }, 150);
       if (osmSchools.length === 0) {
         console.warn(
           `No OSM school found near (${building.latitude}, ${building.longitude}) for school ${school.name}.`,
@@ -114,4 +115,4 @@ schools.forEach((school) => {
       }
     }
   }
-,);});
+};
