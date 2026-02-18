@@ -196,6 +196,8 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
 const OVERPASS_SERVERS = [
   "https://overpass.private.coffee/api/interpreter",
   "https://overpass-api.de/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
 ];
 
 // Track which server index is currently preferred
@@ -290,16 +292,20 @@ async function runCoordQuery(
   // Both servers failed
   if (lastError) {
     //throw lastError;
-    console.error(" Alle Overpassabfragen sind gescheitert")
+    console.error(" Alle Overpassabfragen sind gescheitert");
   }
   
   //throw new Error("All Overpass servers failed to return valid JSON");
+  return [];
 }
 
 
 const queryStringOSMSchool = `
 [out:json][timeout:10000];
-nwr[amenity=school](around:{{distance}},{{coord}});
+(
+ nwr[amenity=school](around:{{distance}},{{coord}});
+ nwr[building=school](around:{{distance}},{{coord}});
+);
 out center;
 `;
 
