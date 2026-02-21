@@ -196,13 +196,15 @@ async function parseResponseToNamedObjectWithPosition(response: Response) {
 const OVERPASS_SERVERS = [
   "https://overpass.private.coffee/api/interpreter",
   "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter"
 ];
 
 // Track which server index is currently preferred
 let currentServerIndex = 0;
 
 function overpassServer(index?: number) {
-  // return "https://overpass-api.de/api/interpreter"  // 504 Gateway tiemout to often
+ 
   if (index !== undefined) {
     return OVERPASS_SERVERS[index % OVERPASS_SERVERS.length];
   }
@@ -267,7 +269,7 @@ async function runCoordQuery(
     try {
       const serverUrl = overpassServer();
 
-      console.log(`Running query on server: ${serverUrl} with query: ${query}`);
+      console.debug(`Running query on server: ${serverUrl} with query: ${query}`);
       const response = await fetch(serverUrl, {
         method: "POST",
         body: "data=" + encodeURIComponent(query),
@@ -282,14 +284,14 @@ async function runCoordQuery(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       // JSON parsing failed, try the next server
-      console.log("Error parsing JSON from server, trying next server: ", lastError);
+      console.debug("Error parsing JSON from server, trying next server: ", lastError);
       nextServerIndex();
     }
   }
 
-  // Both servers failed
+  // All servers failed
   if (lastError) {
-    throw lastError;
+    console.error("All overpass servers failed, last error was ", lastError)
   }
   
   throw new Error("All Overpass servers failed to return valid JSON");
