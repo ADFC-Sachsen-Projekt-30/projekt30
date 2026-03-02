@@ -9,7 +9,14 @@ import type {
   QueryResult,
 } from "./types";
 
+interface SchoolChecklistState {
+  hasExitToStreet: boolean; // "hat schule ausgang zur strasse"
+  isTempo50: boolean; // "ist strasse noch tempo 50"
+}
+
 interface Store {
+  schoolChecklist: SchoolChecklistState;
+  setSchoolChecklist: (checklist: SchoolChecklistState) => void;
   // current coordinate for coordinate based requests
   queryCoord: LatLng | null;
   setQueryCoord(queryCoord: LatLng): void;
@@ -36,6 +43,10 @@ export const useStore = create<Store>()(
     queryCoord: null,
     setQueryCoord: (queryCoord) => {
       set((state) => ({ ...state, queryCoord }));
+    },
+    schoolChecklist: { hasExitToStreet: false, isTempo50: false },
+    setSchoolChecklist: (schoolChecklist) => {
+      set((state) => ({ ...state, schoolChecklist }));
     },
     mainStreetsAtCoord: null,
     queryResult: null,
@@ -77,5 +88,18 @@ useStore.subscribe(
   (state) => state.queryCoord,
   () => {
     useStore.getState().fetchQuery();
+  },
+);
+
+useStore.subscribe(
+  (state) => state.selectedSchool,
+  (school) => {
+    const { setQueryCoord, setSchoolChecklist } = useStore.getState();
+
+    setSchoolChecklist({ hasExitToStreet: false, isTempo50: false });
+
+    if (school) {
+      setQueryCoord({ lat: school.lat, lng: school.lng });
+    }
   },
 );
