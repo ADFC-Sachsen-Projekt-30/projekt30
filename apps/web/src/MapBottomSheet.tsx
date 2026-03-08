@@ -6,15 +6,17 @@ import {
   useState,
 } from "react";
 import { Sheet, type SheetRef } from "react-modal-sheet";
+import { useStore } from "./store";
 import { MapBottomSheetBody } from "./MapBottomSheetBody";
 
-const snapPoints = [0, 42, 130, 0.5, -100, 1];
+const snapPoints = [0, 42, 130, 0.3, 0.7, -200, 1];
 const initialSnap = 2;
 
 export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
   const sheetRef = useRef<SheetRef>(null);
   const [snapPoint, setSnapPoint] = useState(initialSnap);
   const snapTo = (i: number) => sheetRef.current?.snapTo(i);
+  const { selectedSchool } = useStore();
 
   useEffect(() => {
     // do not allow th sheet to grow to full height
@@ -22,6 +24,14 @@ export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
       snapTo(snapPoints.length - 2);
     }
   }, [snapPoint]);
+
+  // snap to 0.3 (index 3) when a school is selected so that the
+  // PetitionChecklist is visible
+  useEffect(() => {
+    if (selectedSchool && snapPoint < 3) {
+      snapTo(3);
+    }
+  }, [selectedSchool]);
 
   return (
     <Sheet

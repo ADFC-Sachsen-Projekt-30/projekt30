@@ -1,4 +1,3 @@
-import { useStore } from "./store";
 import { PetitionChecklist } from "./PetitionChecklist";
 
 export function MapBottomSheetBody() {
