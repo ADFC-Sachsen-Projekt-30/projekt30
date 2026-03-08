@@ -1,9 +1,15 @@
-import { Checkbox, Stack, Text, Title } from "@mantine/core";
+import { ActionIcon, Checkbox, Group, Stack, Text, Title } from "@mantine/core";
+import { IconX } from "@tabler/icons-react";
 import { useStore } from "./store";
 
 export function PetitionChecklist() {
-  const { selectedSchool, petitionChecklist, setPetitionChecklist, adminUnit } =
-    useStore();
+  const {
+    selectedSchool,
+    petitionChecklist,
+    setPetitionChecklist,
+    adminUnit,
+    setSelectedSchool,
+  } = useStore();
 
   if (!selectedSchool) {
     return (
@@ -18,7 +24,16 @@ export function PetitionChecklist() {
 
   return (
     <Stack>
-      <Title order={3}>Schule: {selectedSchool.name}</Title>
+      <Group justify="space-between">
+        <Title order={3}>Schule: {selectedSchool.name}</Title>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          onClick={() => setSelectedSchool(null)}
+        >
+          <IconX size={20} />
+        </ActionIcon>
+      </Group>
       <Stack>
         <Checkbox
           label="Hat die Schule einen Haupt- oder Nebenausgang zur Straße?"
@@ -40,9 +55,13 @@ export function PetitionChecklist() {
             })
           }
         />
-        <Text>
-          Gemeinde: {adminUnit?.name} / {adminUnit?.email}
-        </Text>
+        {adminUnit ? (
+          <Text>
+            Gemeinde: {adminUnit?.name}, {adminUnit?.email}
+          </Text>
+        ) : (
+          <Text>Keine Gemeinde gefunden :(</Text>
+        )}
       </Stack>
     </Stack>
   );
