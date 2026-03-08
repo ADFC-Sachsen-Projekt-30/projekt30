@@ -20,3 +20,4 @@ Genauer: Bei Klick auf karte / location:
 - keep state in the global store under a separate key tha has the same name as the new component
 - do not mess with queries or other global state - all required data should already exist
 - display the council name by using the "gemeindeverzeichnis.json" data (see the adminUnits runtype, use ID, in the selected school there is also a corresponding ID)
+- do not use any async overpass queries - all the data you need you'll find already in the state or in src/data modules

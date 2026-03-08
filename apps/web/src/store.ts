@@ -8,15 +8,22 @@ import type {
   NamedObjectWithPosition,
   QueryResult,
 } from "./types";
+import { adminUnits } from "./data/adminUnits";
 
-interface SchoolChecklistState {
+// helper types
+interface PetitionChecklist {
   hasExitToStreet: boolean; // "hat schule ausgang zur strasse"
   isTempo50: boolean; // "ist strasse noch tempo 50"
 }
 
+interface AdminUnit {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// store defintion
 interface Store {
-  schoolChecklist: SchoolChecklistState;
-  setSchoolChecklist: (checklist: SchoolChecklistState) => void;
   // current coordinate for coordinate based requests
   queryCoord: LatLng | null;
   setQueryCoord(queryCoord: LatLng): void;
@@ -26,27 +33,35 @@ interface Store {
 
   // overpass api query result for schools near query coordinate
   queryResult: QueryResult | null;
-
-  // selected school marker
-  selectedSchool: SchoolPoint | null;
-  setSelectedSchool: (school: SchoolPoint | null) => void;
+  fetchQuery(): Promise<void>;
 
   // schools in current map viewport
   viewportSchools: SchoolPoint[];
   queryViewportSchools(bounds: LatLngBounds, boundsSize: number): void;
 
-  fetchQuery(): Promise<void>;
+  // selected school marker
+  selectedSchool: SchoolPoint | null;
+  setSelectedSchool: (school: SchoolPoint | null) => void;
+
+  // current admin unit (based on selected school for now)
+  adminUnit: AdminUnit | null;
+  setAdminUnit(am: AdminUnit | null): void;
+
+  // petition checklist
+  petitionChecklist: PetitionChecklist;
+  setPetitionChecklist: (checklist: PetitionChecklist) => void;
 }
 
+// store implementation
 export const useStore = create<Store>()(
   subscribeWithSelector((set, get) => ({
     queryCoord: null,
     setQueryCoord: (queryCoord) => {
       set((state) => ({ ...state, queryCoord }));
     },
-    schoolChecklist: { hasExitToStreet: false, isTempo50: false },
-    setSchoolChecklist: (schoolChecklist) => {
-      set((state) => ({ ...state, schoolChecklist }));
+    petitionChecklist: { hasExitToStreet: false, isTempo50: false },
+    setPetitionChecklist: (petitionChecklist) => {
+      set((state) => ({ ...state, petitionChecklist }));
     },
     mainStreetsAtCoord: null,
     queryResult: null,
@@ -81,9 +96,15 @@ export const useStore = create<Store>()(
         mainStreetsAtCoord,
       }));
     },
+
+    adminUnit: null,
+    setAdminUnit: (adminUnit: AdminUnit | null) => {
+      set((state) => ({ ...state, adminUnit }));
+    },
   })),
 );
 
+// fetch query if query coord changes
 useStore.subscribe(
   (state) => state.queryCoord,
   () => {
@@ -91,12 +112,47 @@ useStore.subscribe(
   },
 );
 
+// set admin unit based on the selected school
 useStore.subscribe(
   (state) => state.selectedSchool,
   (school) => {
-    const { setQueryCoord, setSchoolChecklist } = useStore.getState();
+    console.log("SELECTED SCHOOL");
 
-    setSchoolChecklist({ hasExitToStreet: false, isTempo50: false });
+    const { setAdminUnit } = useStore.getState();
+
+    if (!school) {
+      setAdminUnit(null);
+
+      return;
+    }
+
+    const adminUnit = adminUnits.find(
+      (unit) =>
+        unit.SCHLNR === school.building.community_key ||
+        unit.SCHLNR === school.building.community_part_key,
+    );
+
+    if (!adminUnit) {
+      setAdminUnit(null);
+
+      return;
+    }
+
+    setAdminUnit({
+      id: adminUnit.ID,
+      email: adminUnit.E_MAIL,
+      name: adminUnit.GEMEINDE,
+    });
+  },
+);
+
+// initialize petition checklist
+useStore.subscribe(
+  (state) => state.selectedSchool,
+  (school) => {
+    const { setQueryCoord, setPetitionChecklist } = useStore.getState();
+
+    setPetitionChecklist({ hasExitToStreet: false, isTempo50: false });
 
     if (school) {
       setQueryCoord({ lat: school.lat, lng: school.lng });
