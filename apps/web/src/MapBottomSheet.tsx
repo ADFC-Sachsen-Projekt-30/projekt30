@@ -1,18 +1,15 @@
-import {
-  type CSSProperties,
-  type FC,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FC, useEffect, useRef, useState } from "react";
 import { Sheet, type SheetRef } from "react-modal-sheet";
-import { useStore } from "./store";
 import { MapBottomSheetBody } from "./MapBottomSheetBody";
+import { useStore } from "./store";
 
 const snapPoints = [0, 42, 130, 0.3, 0.7, -200, 1];
 const initialSnap = 2;
 
-export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
+export const MapBottomSheet: FC<{
+  // an element hovering over the map right above the bottom sheed
+  MapControlButton?: React.ReactNode;
+}> = (props) => {
   const sheetRef = useRef<SheetRef>(null);
   const [snapPoint, setSnapPoint] = useState(initialSnap);
   const snapTo = (i: number) => sheetRef.current?.snapTo(i);
@@ -49,6 +46,31 @@ export const MapBottomSheet: FC<{ style?: CSSProperties }> = () => {
           backgroundColor: "var(--mantine-color-body)",
         }}
       >
+        {
+          // hide the gps button when the panel occupies more screen similar
+          // to how gmap does this
+          // TODO: use a proper motion animation for this
+          snapPoint < 4 ? (
+            <div
+              style={{
+                position: "relative",
+                height: 0,
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  zIndex: "calc(var(--mantine-z-index-app) + 100)",
+                  top: "-4rem",
+                  right: "1rem",
+                }}
+              >
+                {props.MapControlButton}
+              </div>
+            </div>
+          ) : null
+        }
         <Sheet.Header />
         <Sheet.Content>
           <MapBottomSheetBody />

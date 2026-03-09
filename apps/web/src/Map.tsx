@@ -193,26 +193,6 @@ export function Map() {
         }}
       />
 
-      {/* GPS button */}
-      <ActionIcon
-        size="xl"
-        variant="white"
-        color="blue"
-        onClick={getUserLocation}
-        style={{
-          position: "absolute",
-          bottom: `calc(${bottomHeight})`, // position above bottom sheet
-          right: "1rem",
-          zIndex: "calc(var(--mantine-z-index-app) + 10)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-        }}
-        title="Meinen Standort finden"
-        aria-label="Meinen Standort finden"
-        loading={isLocating}
-      >
-        <IconCircleFilled />
-      </ActionIcon>
-
       {/* bottom panel collapse */}
       <div
         style={{
@@ -220,7 +200,24 @@ export function Map() {
           height: bottomHeight,
         }}
       >
-        <MapBottomSheet />
+        <MapBottomSheet
+          MapControlButton={
+            <ActionIcon
+              size="xl"
+              variant="white"
+              color="blue"
+              onClick={getUserLocation}
+              style={{
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              }}
+              title="Meinen Standort finden"
+              aria-label="Meinen Standort finden"
+              loading={isLocating}
+            >
+              <IconCircleFilled />
+            </ActionIcon>
+          }
+        />
       </div>
     </div>
   );
