@@ -25,8 +25,12 @@ export const MapBottomSheet: FC<{
   // snap to 0.3 (index 3) when a school is selected so that the
   // PetitionChecklist is visible
   useEffect(() => {
-    if (selectedSchool && snapPoint < 3) {
-      snapTo(3);
+    if (selectedSchool) {
+      if (snapPoint < 3) {
+        snapTo(3);
+      }
+    } else {
+      snapTo(2);
     }
   }, [selectedSchool]);
 
